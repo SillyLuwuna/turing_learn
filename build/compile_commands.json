@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/home/luna/Documents/code/turing_learning/build",
-  "command": "/usr/bin/c++  -I/home/luna/Documents/code/turing_learning/include -std=gnu++20 -Wall -Wextra -Wpedantic -O2 -o CMakeFiles/turing_learn.dir/src/main.cpp.o -c /home/luna/Documents/code/turing_learning/src/main.cpp",
-  "file": "/home/luna/Documents/code/turing_learning/src/main.cpp",
-  "output": "CMakeFiles/turing_learn.dir/src/main.cpp.o"
-}
-]

@@ -1,3 +1,0 @@
-/home/luna/Documents/code/turing_learning/build/CMakeFiles/turing_learn.dir
-/home/luna/Documents/code/turing_learning/build/CMakeFiles/edit_cache.dir
-/home/luna/Documents/code/turing_learning/build/CMakeFiles/rebuild_cache.dir
