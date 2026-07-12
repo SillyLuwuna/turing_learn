@@ -10,10 +10,10 @@ namespace turing_learning::utm
 	class Memory
 	{
 	private:
-		Tape<TapeLen> tapes_[NumTapes];
+		Tape<TapeLen> (&tapes_)[NumTapes];
 		uint8_t registered_tapes_;
 
-		Head<TapeLen> heads_[NumHeads];
+		Head<TapeLen> (&heads_)[NumHeads];
 		uint8_t registered_heads_;
 
 		uint16_t state_;
@@ -63,7 +63,7 @@ namespace turing_learning::utm
 		}
 
 	public:
-		inline constexpr Memory(Tape<TapeLen> tapes[NumTapes], Head<TapeLen> heads[NumHeads]) :
+		inline constexpr Memory(Tape<TapeLen> (&tapes)[NumTapes], Head<TapeLen> (&heads)[NumHeads]) :
 			tapes_(tapes),
 			heads_(heads)
 		{

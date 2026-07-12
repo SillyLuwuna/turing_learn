@@ -32,7 +32,7 @@ namespace turing_learning::utm
 		}
 
 	public:
-		inline constexpr Tape<uint16_t>()
+		inline constexpr Tape<Len>()
 		{
 			tape_ = std::make_unique<uint8_t[]>(Len);
 			// tape_.reserve(Len);
