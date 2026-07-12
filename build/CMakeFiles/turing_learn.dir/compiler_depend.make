@@ -7,6 +7,7 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o: /home/luna/Documents/code/turing_lea
   /home/luna/Documents/code/turing_learning/include/utm/memory.hpp \
   /home/luna/Documents/code/turing_learning/include/utm/program.hpp \
   /home/luna/Documents/code/turing_learning/include/utm/state_transition.hpp \
+  /home/luna/Documents/code/turing_learning/include/utm/symbol.hpp \
   /home/luna/Documents/code/turing_learning/include/utm/tape.hpp \
   /home/luna/Documents/code/turing_learning/include/utm/tape_state.hpp \
   /home/luna/Documents/code/turing_learning/include/utm/utm.hpp \
@@ -362,8 +363,6 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 
 /usr/include/c++/16/bits/cxxabi_init_exception.h:
 
-/usr/include/bits/types/struct_sched_param.h:
-
 /usr/include/c++/16/bits/concept_check.h:
 
 /usr/include/c++/16/bits/basic_string.tcc:
@@ -418,10 +417,6 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 
 /usr/include/c++/16/string:
 
-/usr/include/c++/16/bits/memory_resource.h:
-
-/usr/include/bits/types/sigset_t.h:
-
 /usr/include/c++/16/bits/ios_base.h:
 
 /usr/include/bits/types/timer_t.h:
@@ -432,6 +427,8 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 
 /usr/include/bits/waitflags.h:
 
+/usr/include/bits/types/struct_sched_param.h:
+
 /usr/include/bits/types/struct_itimerspec.h:
 
 /usr/include/bits/struct_rwlock.h:
@@ -441,6 +438,18 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 /usr/include/c++/16/bits/cxxabi_forced.h:
 
 /usr/include/c++/16/cwctype:
+
+/usr/include/stdint.h:
+
+/usr/include/c++/16/bits/exception.h:
+
+/usr/include/c++/16/bits/std_function.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/types/sigset_t.h:
+
+/usr/include/c++/16/bits/memory_resource.h:
 
 /usr/include/bits/types/locale_t.h:
 
@@ -461,6 +470,12 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 /usr/include/bits/types/clock_t.h:
 
 /usr/include/c++/16/x86_64-pc-linux-gnu/bits/cpu_defines.h:
+
+/usr/include/bits/types/__mbstate_t.h:
+
+/usr/lib/gcc/x86_64-pc-linux-gnu/16/crtendS.o:
+
+/usr/include/bits/stdio_lim.h:
 
 /usr/include/c++/16/cstdlib:
 
@@ -492,12 +507,6 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 
 /usr/include/asm-generic/int-ll64.h:
 
-/usr/lib/gcc/x86_64-pc-linux-gnu/16/crtendS.o:
-
-/usr/include/bits/stdio_lim.h:
-
-/usr/include/bits/types/__mbstate_t.h:
-
 /usr/include/bits/time.h:
 
 /usr/include/asm/posix_types.h:
@@ -509,14 +518,6 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 /usr/include/c++/16/bits/functional_hash.h:
 
 /usr/include/bits/types/mbstate_t.h:
-
-/usr/include/c++/16/bits/exception_defines.h:
-
-/home/luna/Documents/code/turing_learning/include/utm/head_operation.hpp:
-
-/usr/include/c++/16/bits/vector.tcc:
-
-/usr/include/bits/floatn.h:
 
 /usr/include/asm/bitsperlong.h:
 
@@ -554,6 +555,12 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 
 /usr/include/bits/endianness.h:
 
+/home/luna/Documents/code/turing_learning/include/utm/symbol.hpp:
+
+/usr/lib/libc.so:
+
+/usr/include/bits/pthreadtypes.h:
+
 /usr/include/c++/16/bits/max_size_type.h:
 
 /usr/include/c++/16/bits/ostream.h:
@@ -576,6 +583,14 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 
 /home/luna/Documents/code/turing_learning/include/utm/utm.hpp:
 
+/usr/include/c++/16/bits/exception_defines.h:
+
+/home/luna/Documents/code/turing_learning/include/utm/head_operation.hpp:
+
+/usr/include/c++/16/bits/vector.tcc:
+
+/usr/include/bits/floatn.h:
+
 /usr/include/bits/pthread_stack_min-dynamic.h:
 
 /usr/include/c++/16/cctype:
@@ -583,10 +598,6 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 /usr/include/c++/16/backward/auto_ptr.h:
 
 /usr/include/gnu/stubs-64.h:
-
-/usr/lib/libc.so:
-
-/usr/include/bits/pthreadtypes.h:
 
 /usr/include/bits/select.h:
 
@@ -699,14 +710,6 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o:
 /usr/include/c++/16/bits/shared_ptr_base.h:
 
 /usr/include/c++/16/bits/stdexcept_throw.h:
-
-/usr/include/c++/16/bits/exception.h:
-
-/usr/include/c++/16/bits/std_function.h:
-
-/usr/include/endian.h:
-
-/usr/include/stdint.h:
 
 /usr/include/asm-generic/posix_types.h:
 

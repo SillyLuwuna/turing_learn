@@ -1,7 +1,7 @@
 #pragma once
 
+#include "utm/symbol.hpp"
 #include <cstdint>
-#include <functional>
 #include <stdexcept>
 
 namespace turing_learning::utm
@@ -10,16 +10,33 @@ namespace turing_learning::utm
 	struct TapeState
 	{
 		uint16_t state;
-		uint8_t head_reads[NumHeads];
+		Symbol head_reads[6]; // doesn't use NumHeads
 
-		inline constexpr uint64_t hash() const
+		inline uint64_t hash() const
 		{
 			if constexpr(NumHeads > 6)
 			{
 				throw std::runtime_error("cannot have more than 6 tapes in current implementation");
 			}
 
-			return *(uint64_t*)this;
+			return *reinterpret_cast<const uint64_t*>(this);
+		}
+
+		std::string to_str() const
+		{
+			std::string str;
+
+			str += std::to_string(state);
+			str += ": [";
+
+			for (int i = 0; i < NumHeads; i++)
+			{
+				str += SymbolBuilder::to_str(head_reads[i]);
+			}
+
+			str += "]";
+
+			return str;
 		}
 	};
 }

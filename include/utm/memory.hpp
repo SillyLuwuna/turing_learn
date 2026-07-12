@@ -10,10 +10,10 @@ namespace turing_learning::utm
 	class Memory
 	{
 	private:
-		Tape<TapeLen> (&tapes_)[NumTapes];
+		Tape<TapeLen>* (&tapes_)[NumTapes];
 		uint8_t registered_tapes_;
 
-		Head<TapeLen> (&heads_)[NumHeads];
+		Head<TapeLen>* (&heads_)[NumHeads];
 		uint8_t registered_heads_;
 
 		uint16_t state_;
@@ -24,7 +24,7 @@ namespace turing_learning::utm
 		{
 			for (uint8_t i = 0; i < NumHeads; i++)
 			{
-				heads_[i].write(transition.head_writes[i]);
+				heads_[i]->write(transition.head_writes[i]);
 			}
 		}
 
@@ -32,7 +32,7 @@ namespace turing_learning::utm
 		{
 			for (uint8_t i = 0; i < NumHeads; i++)
 			{
-				move_head(heads_[i], transition.get_head_operation(i));
+				move_head(*heads_[i], transition.get_head_operation(i));
 			}
 		}
 
@@ -63,10 +63,18 @@ namespace turing_learning::utm
 		}
 
 	public:
-		inline constexpr Memory(Tape<TapeLen> (&tapes)[NumTapes], Head<TapeLen> (&heads)[NumHeads]) :
+		inline constexpr Memory(Tape<TapeLen>* (&tapes)[NumTapes], Head<TapeLen>* (&heads)[NumHeads]) :
 			tapes_(tapes),
-			heads_(heads)
+			registered_tapes_(NumTapes),
+			heads_(heads),
+			registered_heads_(NumHeads),
+			state_(0),
+			corrupted_(false)
 		{
+			if constexpr (NumTapes > 6)
+			{
+				throw std::runtime_error("cannot have more than 6 tapes in current implementation");
+			}
 		}
 
 		inline constexpr void register_tape(Tape<TapeLen>&& tape)
@@ -82,11 +90,12 @@ namespace turing_learning::utm
 		inline constexpr TapeState<NumHeads> get_tape_state()
 		{
 			TapeState<NumHeads> tape_state;
+			std::memset(tape_state.head_reads, 0, sizeof(tape_state.head_reads));
 
 			tape_state.state = state_;
 			for (uint8_t i = 0; i < NumHeads; i++)
 			{
-				tape_state.head_reads[i] = heads_[i].read();
+				tape_state.head_reads[i] = heads_[i]->read();
 			}
 
 			return tape_state;
@@ -102,6 +111,34 @@ namespace turing_learning::utm
 		inline constexpr bool is_corrupted()
 		{
 			return corrupted_;
+		}
+
+		std::string to_str() const
+		{
+			std::string str;
+
+			for (uint8_t i = 0; i < registered_tapes_; i++)
+			{
+				if (i > 0)
+				{
+					str += "\n";
+				}
+				str += "tape";
+				str += std::to_string(i);
+				str += ": ";
+				str += (*tapes_[i]).to_str();
+			}
+
+			for (uint8_t i = 0; i < registered_heads_; i++)
+			{
+				str += "\n";
+				str += "head";
+				str += std::to_string(i);
+				str += ": ";
+				str += (*heads_[i]).to_str();
+			}
+
+			return str;
 		}
 	};
 }

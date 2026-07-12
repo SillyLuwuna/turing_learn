@@ -150,6 +150,7 @@ CMakeFiles/turing_learn.dir/src/main.cpp.o: \
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint.h \
  /usr/include/stdint.h /usr/include/bits/stdint-uintn.h \
  /usr/include/bits/stdint-least.h \
+ /home/luna/Documents/code/turing_learning/include/utm/symbol.hpp \
  /home/luna/Documents/code/turing_learning/include/utm/tape.hpp \
  /usr/include/c++/16/cstring /usr/include/string.h /usr/include/strings.h \
  /usr/include/c++/16/memory /usr/include/c++/16/bits/stl_tempbuf.h \

@@ -17,6 +17,7 @@ namespace turing_learning::utm
 	public:
 		inline constexpr void add_transition(StateTransition<NumHeads>&& transition)
 		{
+			std::cout << "registered transition: " << transition.to_str() << "\n";
 			transitions_.emplace(std::move(transition));
 		}
 
