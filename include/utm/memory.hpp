@@ -12,6 +12,7 @@ namespace turing_learning::utm
 	{
 	private:
 		using Symbol = typename Config::Symbol;
+		using State = typename Config::State;
 		using TapeLenType = typename Config::TapeLenType;
 		using NumHeadsType = typename Config::NumHeadsType;
 		using NumTapesType = typename Config::NumTapesType;
@@ -21,18 +22,18 @@ namespace turing_learning::utm
 		static constexpr NumHeadsType num_heads = Config::num_heads;
 
 		Tape<Config>* (&tapes_)[num_tapes];
-		uint8_t registered_tapes_;
+		NumTapesType registered_tapes_;
 
 		Head<Config>* (&heads_)[num_heads];
-		uint8_t registered_heads_;
+		NumTapesType registered_heads_;
 
-		uint16_t state_;
+		State state_;
 
 		bool corrupted_;
 
 		inline constexpr void write_heads(const StateTransition<Config>& transition)
 		{
-			for (uint8_t i = 0; i < num_heads; i++)
+			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
 				heads_[i]->write(transition.head_writes[i]);
 			}
@@ -40,7 +41,7 @@ namespace turing_learning::utm
 
 		inline constexpr void apply_head_operations(const StateTransition<Config>& transition)
 		{
-			for (uint8_t i = 0; i < num_heads; i++)
+			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
 				move_head(*heads_[i], transition.get_head_operation(i));
 			}
@@ -99,7 +100,7 @@ namespace turing_learning::utm
 			std::memset(tape_state.head_reads, 0, sizeof(tape_state.head_reads));
 
 			tape_state.state = state_;
-			for (uint8_t i = 0; i < num_heads; i++)
+			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
 				tape_state.head_reads[i] = heads_[i]->read();
 			}
@@ -123,7 +124,7 @@ namespace turing_learning::utm
 		{
 			std::string str;
 
-			for (uint8_t i = 0; i < registered_tapes_; i++)
+			for (NumTapesType i = 0; i < registered_tapes_; i++)
 			{
 				if (i > 0)
 				{
@@ -135,7 +136,7 @@ namespace turing_learning::utm
 				str += (*tapes_[i]).to_str();
 			}
 
-			for (uint8_t i = 0; i < registered_heads_; i++)
+			for (NumHeadsType i = 0; i < registered_heads_; i++)
 			{
 				str += "\n";
 				str += "head";
@@ -149,7 +150,7 @@ namespace turing_learning::utm
 
 		uint64_t num_bytes() const override
 		{
-			uint64_t single_tape_bytes = sizeof(Tape<Config>) + (sizeof(Symbol) * tape_len);
+			uint64_t single_tape_bytes = sizeof(Tape<Config>) + (Config::symbol_bits * tape_len);
 			uint64_t tape_bytes = registered_tapes_ * single_tape_bytes;
 			uint64_t head_bytes = registered_heads_ * sizeof(Head<Config>);
 			return sizeof(*this) + tape_bytes + head_bytes;

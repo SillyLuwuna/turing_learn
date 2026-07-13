@@ -6,12 +6,17 @@
 #include "utm/program.hpp"
 #include "utm/state_transition.hpp"
 #include "utm/utm.hpp"
+#include "containers/bit_array.hpp"
 
+using namespace turing_learning;
+using namespace turing_learning::containers;
 using namespace turing_learning::utm;
 using namespace turing_learning::benchmark;
 
 int main()
 {
+	// TODO state_transition::head_operations
+
 	const uint8_t num_heads = 1;
 	const uint8_t num_tapes = 1;
 	const uint16_t tape_len = 1000;
@@ -164,6 +169,23 @@ int main()
 	std::cout << "bits: " << size_bytes * 8 << "\n";
 	std::cout << "bytes: " << size_bytes << "\n";
 	std::cout << "kb: " << size_bytes / 1024.0 << "\n";
+
+	BitArray<128> arr;
+
+	std::cout << arr.to_str() << "\n";
+	arr[0] = 1;
+	arr[1] = 1;
+	arr[63] = 1;
+	std::cout << arr.to_str() << "\n";
+	arr <<= 63;
+	std::cout << arr.to_str() << "\n";
+	arr >>= 63;
+	std::cout << arr.to_str() << "\n";
+
+	uint64_t obj = 137;
+	arr.to_bits<uint64_t, true>(5, obj);
+	std::cout << arr.to_str() << "\n";
+	std::cout << arr.from_bits<uint64_t>(10) << "\n";
 
 	return 0;
 }

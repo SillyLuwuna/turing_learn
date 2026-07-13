@@ -13,13 +13,14 @@ namespace turing_learning::utm
 	private:
 		using Symbol = typename Config::Symbol;
 		using TapeLenType = typename Config::TapeLenType;
+
 		static constexpr TapeLenType tape_len = Config::tape_len;
 
 		Tape<Config>& tape_;
-		uint16_t pos_;
+		TapeLenType pos_;
 
 	public:
-		inline constexpr Head(Tape<Config>& tape, uint16_t pos) :
+		inline constexpr Head(Tape<Config>& tape, TapeLenType pos) :
 			tape_(tape),
 			pos_(pos)
 		{ }
@@ -48,7 +49,7 @@ namespace turing_learning::utm
 			tape_.write(pos_, symbol);
 		}
 
-		inline constexpr uint16_t pos() const
+		inline constexpr TapeLenType pos() const
 		{
 			return pos_;
 		}
@@ -75,7 +76,7 @@ namespace turing_learning::utm
 			str += "[";
 			str += std::to_string(pos_);
 			str += "] (";
-			uint16_t symbol = read();
+			Symbol symbol = read();
 			if (symbol == 0)
 			{
 				str += "_";

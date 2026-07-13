@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utm/size_selector.hpp"
+#include <cmath>
 #include <cstdint>
 
 namespace turing_learning::utm
@@ -19,5 +20,21 @@ namespace turing_learning::utm
 		static constexpr TapeLenType tape_len = TapeLen;
 		static constexpr Symbol num_symbols = NumSymbols;
 		static constexpr State num_states = NumStates;
+
+		static constexpr uint64_t get_required_bits(uint64_t size)
+		{
+			uint64_t bits = 1;
+			uint64_t max_size = 2;
+
+			while (max_size < size)
+			{
+				max_size *= 2;
+				bits++;
+			}
+
+			return bits;
+		}
+
+		static constexpr uint64_t symbol_bits = get_required_bits(NumSymbols);
 	};
 }
