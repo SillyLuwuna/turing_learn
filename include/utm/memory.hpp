@@ -7,37 +7,46 @@
 
 namespace turing_learning::utm
 {
-	template<uint8_t NumHeads, uint8_t NumTapes, uint16_t TapeLen>
+	template<typename Config>
 	class Memory : benchmark::ByteMeasurable
 	{
 	private:
-		Tape<TapeLen>* (&tapes_)[NumTapes];
+		using Symbol = typename Config::Symbol;
+		using TapeLenType = typename Config::TapeLenType;
+		using NumHeadsType = typename Config::NumHeadsType;
+		using NumTapesType = typename Config::NumTapesType;
+
+		static constexpr TapeLenType tape_len = Config::tape_len;
+		static constexpr NumTapesType num_tapes = Config::num_tapes;
+		static constexpr NumHeadsType num_heads = Config::num_heads;
+
+		Tape<Config>* (&tapes_)[num_tapes];
 		uint8_t registered_tapes_;
 
-		Head<TapeLen>* (&heads_)[NumHeads];
+		Head<Config>* (&heads_)[num_heads];
 		uint8_t registered_heads_;
 
 		uint16_t state_;
 
 		bool corrupted_;
 
-		inline constexpr void write_heads(const StateTransition<NumHeads>& transition)
+		inline constexpr void write_heads(const StateTransition<Config>& transition)
 		{
-			for (uint8_t i = 0; i < NumHeads; i++)
+			for (uint8_t i = 0; i < num_heads; i++)
 			{
 				heads_[i]->write(transition.head_writes[i]);
 			}
 		}
 
-		inline constexpr void apply_head_operations(const StateTransition<NumHeads>& transition)
+		inline constexpr void apply_head_operations(const StateTransition<Config>& transition)
 		{
-			for (uint8_t i = 0; i < NumHeads; i++)
+			for (uint8_t i = 0; i < num_heads; i++)
 			{
 				move_head(*heads_[i], transition.get_head_operation(i));
 			}
 		}
 
-		inline constexpr void move_head(Head<TapeLen>& head, HeadOperation operation)
+		inline constexpr void move_head(Head<Config>& head, HeadOperation operation)
 		{
 			switch (operation)
 			{
@@ -58,43 +67,39 @@ namespace turing_learning::utm
 			}
 		}
 
-		inline constexpr void change_state(const StateTransition<NumHeads>& transition)
+		inline constexpr void change_state(const StateTransition<Config>& transition)
 		{
 			state_ = transition.end_state;
 		}
 
 	public:
-		inline constexpr Memory(Tape<TapeLen>* (&tapes)[NumTapes], Head<TapeLen>* (&heads)[NumHeads]) :
+		inline constexpr Memory(Tape<Config>* (&tapes)[num_tapes], Head<Config>* (&heads)[num_heads]) :
 			tapes_(tapes),
-			registered_tapes_(NumTapes),
+			registered_tapes_(num_tapes),
 			heads_(heads),
-			registered_heads_(NumHeads),
+			registered_heads_(num_heads),
 			state_(0),
 			corrupted_(false)
 		{
-			if constexpr (NumTapes > 6)
-			{
-				throw std::runtime_error("cannot have more than 6 tapes in current implementation");
-			}
 		}
 
-		inline constexpr void register_tape(Tape<TapeLen>&& tape)
+		inline constexpr void register_tape(Tape<Config>&& tape)
 		{
 			tapes_[registered_tapes_++] = std::move(tape);
 		}
 
-		inline constexpr void register_head(Head<TapeLen>&& head)
+		inline constexpr void register_head(Head<Config>&& head)
 		{
 			heads_[registered_heads_++] = std::move(head);
 		}
 
-		inline constexpr TapeState<NumHeads> get_tape_state()
+		inline constexpr TapeState<Config> get_tape_state()
 		{
-			TapeState<NumHeads> tape_state;
+			TapeState<Config> tape_state;
 			std::memset(tape_state.head_reads, 0, sizeof(tape_state.head_reads));
 
 			tape_state.state = state_;
-			for (uint8_t i = 0; i < NumHeads; i++)
+			for (uint8_t i = 0; i < num_heads; i++)
 			{
 				tape_state.head_reads[i] = heads_[i]->read();
 			}
@@ -102,7 +107,7 @@ namespace turing_learning::utm
 			return tape_state;
 		}
 
-		inline constexpr void apply(const StateTransition<NumHeads>& transition)
+		inline constexpr void apply(const StateTransition<Config>& transition)
 		{
 			write_heads(transition);
 			apply_head_operations(transition);
@@ -144,9 +149,9 @@ namespace turing_learning::utm
 
 		uint64_t num_bytes() const override
 		{
-			uint64_t single_tape_bytes = sizeof(Tape<TapeLen>) + (sizeof(Symbol) * TapeLen);
+			uint64_t single_tape_bytes = sizeof(Tape<Config>) + (sizeof(Symbol) * tape_len);
 			uint64_t tape_bytes = registered_tapes_ * single_tape_bytes;
-			uint64_t head_bytes = registered_heads_ * sizeof(Head<TapeLen>);
+			uint64_t head_bytes = registered_heads_ * sizeof(Head<Config>);
 			return sizeof(*this) + tape_bytes + head_bytes;
 		}
 	};

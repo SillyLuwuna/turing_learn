@@ -1,25 +1,32 @@
 #pragma once
 
 #include "utm/symbol.hpp"
+#include "hashing/hasher.hpp"
 #include <cstdint>
-#include <stdexcept>
 
 namespace turing_learning::utm
 {
-	template<uint8_t NumHeads>
+	template<typename Config>
 	struct TapeState
 	{
-		uint16_t state;
-		Symbol head_reads[6]; // doesn't use NumHeads
+		using State = typename Config::State;
+		using Symbol = typename Config::Symbol;
+		using NumHeadsType = typename Config::NumHeadsType;
 
-		inline uint64_t hash() const
+		static constexpr NumHeadsType num_heads = Config::num_heads;
+
+		State state;
+		Symbol head_reads[num_heads]; // doesn't use NumHeads
+
+		inline constexpr uint64_t hash() const
 		{
-			if constexpr(NumHeads > 6)
+			uint64_t seed = 0;
+			Hasher::hash_combine(seed, state);
+			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
-				throw std::runtime_error("cannot have more than 6 tapes in current implementation");
+				Hasher::hash_combine(seed, head_reads[i]);
 			}
-
-			return *reinterpret_cast<const uint64_t*>(this);
+			return seed;
 		}
 
 		std::string to_str() const
@@ -29,9 +36,9 @@ namespace turing_learning::utm
 			str += std::to_string(state);
 			str += ": [";
 
-			for (int i = 0; i < NumHeads; i++)
+			for (int i = 0; i < num_heads; i++)
 			{
-				str += SymbolBuilder::to_str(head_reads[i]);
+				str += SymbolBuilder<Config>::to_str(head_reads[i]);
 			}
 
 			str += "]";

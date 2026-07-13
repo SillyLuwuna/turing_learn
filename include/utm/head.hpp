@@ -7,20 +7,24 @@
 
 namespace turing_learning::utm
 {
-	template <uint16_t TapeLen>
+	template<typename Config>
 	class Head
 	{
 	private:
-		Tape<TapeLen>& tape_;
+		using Symbol = typename Config::Symbol;
+		using TapeLenType = typename Config::TapeLenType;
+		static constexpr TapeLenType tape_len = Config::tape_len;
+
+		Tape<Config>& tape_;
 		uint16_t pos_;
 
 	public:
-		inline constexpr Head(Tape<TapeLen>& tape, uint16_t pos) :
+		inline constexpr Head(Tape<Config>& tape, uint16_t pos) :
 			tape_(tape),
 			pos_(pos)
 		{ }
 
-		inline constexpr Head(Tape<TapeLen>& tape) :
+		inline constexpr Head(Tape<Config>& tape) :
 			Head(tape, tape.low())
 		{ }
 
@@ -61,7 +65,7 @@ namespace turing_learning::utm
 
 		inline constexpr bool is_at_right_limit() const
 		{
-			return (pos_ == (TapeLen - 1));
+			return (pos_ == (tape_len - 1));
 		}
 
 		std::string to_str() const

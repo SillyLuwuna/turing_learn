@@ -17,18 +17,18 @@ namespace turing_learning::utm
 		MaxIterationsReached
 	};
 
-	template<uint8_t NumHeads, uint8_t NumTapes, uint16_t TapeLen>
+	template<typename Config>
 	class Utm : public benchmark::ByteMeasurable
 	{
 	private:
-		Program<NumHeads>& program_;
-		Memory<NumHeads, NumTapes, TapeLen>& memory_;
+		Program<Config>& program_;
+		Memory<Config>& memory_;
 		ExitCode exit_code_;
 
 	public:
 		// state 0 is the entry point
 		// state 1 is reserved for final state
-		inline constexpr Utm(Program<NumHeads>& program, Memory<NumHeads, NumTapes, TapeLen>& memory) :
+		inline constexpr Utm(Program<Config>& program, Memory<Config>& memory) :
 			program_(program),
 			memory_(memory),
 			exit_code_(ExitCode::None)
@@ -54,7 +54,7 @@ namespace turing_learning::utm
 				return;
 			}
 
-			const StateTransition<NumHeads>* transition = program_.get_transition_ptr(tape_state);
+			const StateTransition<Config>* transition = program_.get_transition_ptr(tape_state);
 
 			if (transition == nullptr)
 			{

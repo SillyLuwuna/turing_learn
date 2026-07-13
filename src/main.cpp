@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "benchmark/benchmark.hpp"
+#include "utm/config.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
 #include "utm/state_transition.hpp"
@@ -14,9 +15,13 @@ int main()
 	const uint8_t num_heads = 1;
 	const uint8_t num_tapes = 1;
 	const uint16_t tape_len = 1000;
+	const uint64_t num_symbols = 3;
+	const uint64_t num_states = 3;
+	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states>;
+
 	const uint64_t max_iters = 10000;
 
-	Tape<tape_len> tape0 = Tape<tape_len>();
+	Tape<InstanceConfig> tape0 = Tape<InstanceConfig>();
 	tape0.write(500, 2);
 	tape0.write(501, 2);
 	tape0.write(502, 2);
@@ -33,16 +38,16 @@ int main()
 	tape0.write(513, 2);
 	tape0.write(514, 2);
 
-	Head<tape_len> head0 = Head<tape_len>(tape0);
+	Head<InstanceConfig> head0 = Head<InstanceConfig>(tape0);
 
-	Tape<tape_len>* tapes[num_tapes] = { &tape0 };
-	Head<tape_len>* heads[num_tapes] = { &head0 };
+	Tape<InstanceConfig>* tapes[num_tapes] = { &tape0 };
+	Head<InstanceConfig>* heads[num_tapes] = { &head0 };
 
-	Memory<num_heads, num_tapes, tape_len> memory(tapes, heads);
+	Memory<InstanceConfig> memory(tapes, heads);
 
-	Program<num_heads> program;
+	Program<InstanceConfig> program;
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(0)
 		.on_head_read(1)
 		.write(1)
@@ -51,7 +56,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(0)
 		.on_head_read(2)
 		.write(1)
@@ -60,7 +65,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(0)
 		.on_head_read(0)
 		.write(0)
@@ -69,7 +74,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(2)
 		.on_head_read(1)
 		.write(1)
@@ -78,7 +83,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(2)
 		.on_head_read(0)
 		.write(0)
@@ -87,7 +92,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(3)
 		.on_head_read(2)
 		.write(1)
@@ -96,7 +101,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(3)
 		.on_head_read(0)
 		.write(2)
@@ -105,7 +110,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(3)
 		.on_head_read(1)
 		.write(2)
@@ -114,7 +119,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(4)
 		.on_head_read(1)
 		.write(1)
@@ -123,7 +128,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(4)
 		.on_head_read(0)
 		.write(0)
@@ -132,7 +137,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(5)
 		.on_head_read(1)
 		.write(0)
@@ -141,7 +146,7 @@ int main()
 		.build()
 	);
 
-	program.add_transition(StateTransitionBuilder<num_heads>()
+	program.add_transition(StateTransitionBuilder<InstanceConfig>()
 		.from_state(5)
 		.on_head_read(0)
 		.write(0)
@@ -150,7 +155,7 @@ int main()
 		.build()
 	);
 
-	Utm<num_heads, num_tapes, tape_len> utm(program, memory);
+	Utm<InstanceConfig> utm(program, memory);
 
 	utm.run(max_iters);
 

@@ -9,12 +9,16 @@
 
 namespace turing_learning::utm
 {
-	template<uint8_t NumHeads>
+	template<typename Config>
 	struct StateTransition
 	{
-		// TapeState<NumHeads> tape_state;
-		TapeState<NumHeads> tape_state;
-		Symbol head_writes[NumHeads];
+		using Symbol = typename Config::Symbol;
+		using NumHeadsType = typename Config::NumHeadsType;
+
+		static constexpr NumHeadsType num_heads = Config::num_heads;
+
+		TapeState<Config> tape_state;
+		Symbol head_writes[num_heads];
 		uint16_t end_state;
 		uint16_t head_operations; // 2 bits per tape
 
@@ -43,14 +47,14 @@ namespace turing_learning::utm
 			str += std::to_string(end_state);
 			str += "]";
 
-			for (uint8_t i = 0; i < NumHeads; i++)
+			for (uint8_t i = 0; i < num_heads; i++)
 			{
 				str += " head";
 				str += std::to_string(i);
 				str += "(";
-				str += SymbolBuilder::to_str(tape_state.head_reads[i]);
+				str += SymbolBuilder<Config>::to_str(tape_state.head_reads[i]);
 				str += "->";
-				str += SymbolBuilder::to_str(head_writes[i]);
+				str += SymbolBuilder<Config>::to_str(head_writes[i]);
 				str += ", ";
 				str += HeadOperationConversion::to_str(get_head_operation(i));
 				str += ")";
@@ -60,105 +64,103 @@ namespace turing_learning::utm
 		}
 	};
 
-	template<uint8_t NumHeads>
+	template<typename Config>
 	class StateTransitionBuilder
 	{
 	private:
-		StateTransition<NumHeads> state_transition_;
+		using Symbol = typename Config::Symbol;
+
+		StateTransition<Config> state_transition_;
 
 	public:
-		inline constexpr StateTransition<NumHeads>&& build()
+		inline constexpr StateTransition<Config>&& build()
 		{
 			return std::move(state_transition_);
 		}
 
-		inline constexpr StateTransitionBuilder<NumHeads>& move_head(uint8_t tape, HeadOperation operation)
+		inline constexpr StateTransitionBuilder<Config>& move_head(uint8_t tape, HeadOperation operation)
 		{
 			state_transition_.set_head_operation(tape, operation);
 			return *this;
 		}
 
-		inline constexpr StateTransitionBuilder<NumHeads>& move_head(HeadOperation operation)
+		inline constexpr StateTransitionBuilder<Config>& move_head(HeadOperation operation)
 		{
 			return move_head(0, operation);
 		}
 
-		inline constexpr StateTransitionBuilder<NumHeads>& from_state(uint16_t start_state)
+		inline constexpr StateTransitionBuilder<Config>& from_state(uint16_t start_state)
 		{
 			state_transition_.tape_state.state = start_state;
 			return *this;
 		}
 
-		inline constexpr StateTransitionBuilder<NumHeads>& go_to_state(uint16_t end_state)
+		inline constexpr StateTransitionBuilder<Config>& go_to_state(uint16_t end_state)
 		{
 			state_transition_.end_state = end_state;
 			return *this;
 		}
 
-		inline constexpr StateTransitionBuilder<NumHeads>& on_head_read(uint8_t tape, Symbol symbol)
+		inline constexpr StateTransitionBuilder<Config>& on_head_read(uint8_t tape, Symbol symbol)
 		{
 			state_transition_.tape_state.head_reads[tape] = symbol;
 			return *this;
 		}
 
-		inline constexpr StateTransitionBuilder<NumHeads>& on_head_read(Symbol symbol)
+		inline constexpr StateTransitionBuilder<Config>& on_head_read(Symbol symbol)
 		{
 			return on_head_read(0, symbol);
 		}
 
-		inline constexpr StateTransitionBuilder<NumHeads>& write(uint8_t tape, Symbol symbol)
+		inline constexpr StateTransitionBuilder<Config>& write(uint8_t tape, Symbol symbol)
 		{
 			state_transition_.head_writes[tape] = symbol;
 			return *this;
 		}
 
-		inline constexpr StateTransitionBuilder<NumHeads>& write(Symbol symbol)
+		inline constexpr StateTransitionBuilder<Config>& write(Symbol symbol)
 		{
 			return write(0, symbol);
 		}
 	};
 
+	template<typename Config>
 	struct StateTransitionHash
 	{
 		using is_transparent = void;
 
-		template<uint8_t NumHeads>
-		std::size_t operator()(const StateTransition<NumHeads>& transition) const
+		std::size_t operator()(const StateTransition<Config>& transition) const
 		{
 			return transition.tape_state.hash();
 		}
 
-		template<uint8_t NumHeads>
-		std::size_t operator()(const TapeState<NumHeads>& tape_state) const
+		std::size_t operator()(const TapeState<Config>& tape_state) const
 		{
 			return tape_state.hash();
 		}
 	};
 
+	template<typename Config>
 	struct StateTransitionEqual
 	{
 		using is_transparent = void;
 
-		template<uint8_t NumHeads>
-		bool operator()(const StateTransition<NumHeads>& lhs, const StateTransition<NumHeads>& rhs) const
+		bool operator()(const StateTransition<Config>& lhs, const StateTransition<Config>& rhs) const
 		{
 			return lhs.tape_state.hash() == rhs.tape_state.hash();
 		}
 
-		template<uint8_t NumHeads>
-		bool operator()(const StateTransition<NumHeads>& lhs, const TapeState<NumHeads>& rhs) const
+		bool operator()(const StateTransition<Config>& lhs, const TapeState<Config>& rhs) const
 		{
 			return lhs.tape_state.hash() == rhs.hash();
 		}
 
-		template<uint8_t NumHeads>
-		bool operator()(const TapeState<NumHeads>& lhs, const StateTransition<NumHeads>& rhs) const
+		bool operator()(const TapeState<Config>& lhs, const StateTransition<Config>& rhs) const
 		{
 			return lhs.hash() == rhs.tape_state.hash();
 		}
 
-		template<uint8_t NumHeads>
-		bool operator()(const TapeState<NumHeads>& lhs, const TapeState<NumHeads>& rhs) const
+		bool operator()(const TapeState<Config>& lhs, const TapeState<Config>& rhs) const
 		{
 			return lhs.hash() == rhs.hash();
 		}

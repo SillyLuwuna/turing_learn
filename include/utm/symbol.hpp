@@ -1,14 +1,15 @@
 #pragma once
 
+#include "utm/size_selector.hpp"
 #include <cstdint>
 #include <string>
 
 namespace turing_learning::utm
 {
-	using Symbol = uint8_t;
-
+	template<typename Config>
 	struct SymbolBuilder
 	{
+		using Symbol = typename Config::Symbol;
 		static inline constexpr std::string to_str(Symbol symbol)
 		{
 			if (symbol == 0)

@@ -9,10 +9,15 @@
 
 namespace turing_learning::utm
 {
-	template <uint16_t Len>
+	template<typename Config>
 	class Tape
 	{
 	private:
+		using TapeLenType = typename Config::TapeLenType;
+		using Symbol = typename Config::Symbol;
+
+		static constexpr TapeLenType tape_len = Config::tape_len;
+
 		std::unique_ptr<Symbol[]> tape_;
 		uint16_t low_;
 		uint16_t high_;
@@ -57,7 +62,7 @@ namespace turing_learning::utm
 	public:
 		inline constexpr Tape()
 		{
-			tape_ = std::make_unique<uint8_t[]>(Len);
+			tape_ = std::make_unique<uint8_t[]>(tape_len);
 			low_ = std::numeric_limits<uint16_t>::max();
 			high_ = std::numeric_limits<uint16_t>::min();
 		}
@@ -79,25 +84,28 @@ namespace turing_learning::utm
 			std::memset(tape_.get() + idx, symbol, len * sizeof(uint16_t));
 		}
 
-		template<uint16_t MiddleLen>
-		constexpr void write_to_middle(const Tape<MiddleLen>& middle)
+		template<typename OtherConfig>
+		constexpr void write_to_middle(const Tape<Config>& other)
 		{
-			constexpr uint16_t start_idx = (Len / 2) - (MiddleLen / 2);
+			using OtherTapeLenType = typename OtherConfig::TapeLenType;
+			constexpr OtherTapeLenType other_tape_len = OtherConfig::tape_len;
+
+			constexpr uint16_t start_idx = (tape_len / 2) - (other_tape_len / 2);
 
 			if (std::is_constant_evaluated())
 			{
-				const std::vector<uint8_t>& mid_tape = middle.tape_;
-				for (uint16_t i = start_idx; i < MiddleLen; i++)
+				const std::vector<uint8_t>& mid_tape = other.tape_;
+				for (uint16_t i = start_idx; i < other_tape_len; i++)
 				{
 					tape_[i] = mid_tape[i];
 				}
 			}
 			else
 			{
-				std::memcpy(this->tape_.get() + start_idx, middle.tape_.data(), MiddleLen * sizeof(uint16_t));
+				std::memcpy(this->tape_.get() + start_idx, other.tape_.data(), other_tape_len * sizeof(uint16_t));
 			}
 
-			update_bounds(start_idx, start_idx + MiddleLen);
+			update_bounds(start_idx, start_idx + other_tape_len);
 		}
 
 		inline const uint8_t& operator[](uint16_t idx)
@@ -130,7 +138,7 @@ namespace turing_learning::utm
 			{
 				for (uint16_t i = low_; i <= high_; i++)
 				{
-					str += SymbolBuilder::to_str(read(i));
+					str += SymbolBuilder<Config>::to_str(read(i));
 				}
 			}
 
