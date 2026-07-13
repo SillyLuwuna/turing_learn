@@ -1,15 +1,16 @@
 #pragma once
 
+#include <iostream>
 #include <optional>
 #include <unordered_set>
 
-#include "utm/head.hpp"
+#include "benchmark/byte_measurable.hpp"
 #include "utm/state_transition.hpp"
 
 namespace turing_learning::utm
 {
 	template<uint8_t NumHeads>
-	class Program
+	class Program : public benchmark::ByteMeasurable
 	{
 	private:
 		std::unordered_set<StateTransition<NumHeads>, StateTransitionHash, StateTransitionEqual> transitions_;
@@ -17,7 +18,7 @@ namespace turing_learning::utm
 	public:
 		inline constexpr void add_transition(StateTransition<NumHeads>&& transition)
 		{
-			std::cout << "registered transition: " << transition.to_str() << "\n";
+			// std::cout << "registered transition: " << transition.to_str() << "\n";
 			transitions_.emplace(std::move(transition));
 		}
 
@@ -45,6 +46,11 @@ namespace turing_learning::utm
 		inline std::optional<StateTransition<NumHeads>> get_transition(const TapeState<NumHeads>& tape_state) const
 		{
 			return *get_transition_ptr(tape_state);
+		}
+
+		uint64_t num_bytes() const override
+		{
+			return sizeof(*this) + transitions_.size() * sizeof(StateTransition<NumHeads>);
 		}
 	};
 }

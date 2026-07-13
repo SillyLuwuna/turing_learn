@@ -13,7 +13,7 @@ namespace turing_learning::utm
 	class Tape
 	{
 	private:
-		std::unique_ptr<uint8_t[]> tape_;
+		std::unique_ptr<Symbol[]> tape_;
 		uint16_t low_;
 		uint16_t high_;
 

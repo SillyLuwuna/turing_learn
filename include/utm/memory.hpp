@@ -1,5 +1,6 @@
 #pragma once
 
+#include "benchmark/byte_measurable.hpp"
 #include "utm/head.hpp"
 #include "utm/state_transition.hpp"
 #include "utm/tape_state.hpp"
@@ -7,7 +8,7 @@
 namespace turing_learning::utm
 {
 	template<uint8_t NumHeads, uint8_t NumTapes, uint16_t TapeLen>
-	class Memory
+	class Memory : benchmark::ByteMeasurable
 	{
 	private:
 		Tape<TapeLen>* (&tapes_)[NumTapes];
@@ -139,6 +140,14 @@ namespace turing_learning::utm
 			}
 
 			return str;
+		}
+
+		uint64_t num_bytes() const override
+		{
+			uint64_t single_tape_bytes = sizeof(Tape<TapeLen>) + (sizeof(Symbol) * TapeLen);
+			uint64_t tape_bytes = registered_tapes_ * single_tape_bytes;
+			uint64_t head_bytes = registered_heads_ * sizeof(Head<TapeLen>);
+			return sizeof(*this) + tape_bytes + head_bytes;
 		}
 	};
 }

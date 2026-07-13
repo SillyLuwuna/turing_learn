@@ -10,6 +10,10 @@ project(turing_learn)
 
 add_executable(turing_learn ${SRC_FILES})
 
+target_compile_definitions(turing_learn PRIVATE
+	$<$<CONFIG:Debug>:DEBUG>
+)
+
 target_compile_options(turing_learn PRIVATE
 	-Wall
 	-Wextra

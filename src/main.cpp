@@ -1,17 +1,20 @@
 #include <iostream>
 
+#include "benchmark/benchmark.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
 #include "utm/state_transition.hpp"
 #include "utm/utm.hpp"
 
 using namespace turing_learning::utm;
+using namespace turing_learning::benchmark;
 
 int main()
 {
 	const uint8_t num_heads = 1;
 	const uint8_t num_tapes = 1;
 	const uint16_t tape_len = 1000;
+	const uint64_t max_iters = 10000;
 
 	Tape<tape_len> tape0 = Tape<tape_len>();
 	tape0.write(500, 2);
@@ -149,7 +152,13 @@ int main()
 
 	Utm<num_heads, num_tapes, tape_len> utm(program, memory);
 
-	utm.run();
+	utm.run(max_iters);
+
+	Benchmark benchmark;
+	uint64_t size_bytes = benchmark.test_size(utm);
+	std::cout << "bits: " << size_bytes * 8 << "\n";
+	std::cout << "bytes: " << size_bytes << "\n";
+	std::cout << "kb: " << size_bytes / 1024.0 << "\n";
 
 	return 0;
 }
