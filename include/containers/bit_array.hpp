@@ -184,10 +184,10 @@ namespace turing_learning::containers
 
 		constexpr BitArray& operator>>=(uint64_t shift)
 		{
-			uint64_t right_chunk = chunk(shift); // 0
-			uint64_t left_chunk = right_chunk + 1; // 1
-			uint64_t left_chunk_amount = chunk_idx(shift); // 2
-			uint64_t right_chunk_amount = 64 - left_chunk_amount; // 62
+			uint64_t right_chunk = chunk(shift);
+			uint64_t left_chunk = right_chunk + 1;
+			uint64_t left_chunk_amount = chunk_idx(shift);
+			uint64_t right_chunk_amount = 64 - left_chunk_amount;
 
 			for (uint64_t i = 0; i < chunk_size_; i++)
 			{
@@ -282,9 +282,40 @@ namespace turing_learning::containers
 
 		// clearing is inefficient
 		template <typename T, bool Clear>
+		constexpr void to_bits(uint64_t start, const T& obj, uint64_t len_bits)
+		{
+			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
+			uint64_t len_bytes = len_bits >> 3; // len_bits / 8
+			uint64_t overflow_bits = len_bits & 7; // len_bits % 8
+			uint8_t overflow_mask = 0xff >> (8 - overflow_bits);
+
+			if constexpr (Clear)
+			{
+				BitArray<NumBits> mask;
+				std::memset(mask.bit_chunks_, 0xff, len_bytes);
+
+				uint8_t* mask_overflow_target = (uint8_t*)mask.bit_chunks_ + len_bytes;
+				*mask_overflow_target |= overflow_mask;
+
+				mask <<= start;
+				*this &= ~mask;
+			}
+
+			BitArray<NumBits> obj_bits;
+			std::memcpy(obj_bits.bit_chunks_, &obj, len_bytes);
+
+			uint8_t copy_source = (*((uint8_t*)&obj + len_bytes)) & overflow_mask;
+			uint8_t* copy_target = (uint8_t*)obj_bits.bit_chunks_ + len_bytes;
+			*copy_target |= copy_source;
+
+			obj_bits <<= start;
+			*this |= obj_bits;
+		}
+
+		template <typename T, bool Clear>
 		constexpr void to_bits(uint64_t start, const T& obj)
 		{
-			// static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
+			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
 
 			if constexpr (Clear)
 			{
@@ -301,9 +332,30 @@ namespace turing_learning::containers
 		}
 
 		template <typename T>
+		T from_bits(uint64_t start, uint64_t len_bits)
+		{
+			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
+			uint64_t len_bytes = len_bits >> 3; // len_bits / 8
+			uint64_t overflow_bits = len_bits & 7; // len_bits % 8
+			uint8_t overflow_mask = 0xff >> (8 - overflow_bits);
+
+			BitArray<NumBits> mask;
+			std::memset(mask.bit_chunks_, 0xff, len_bytes);
+
+			uint8_t* mask_overflow_target = (uint8_t*)mask.bit_chunks_ + len_bytes;
+			*mask_overflow_target |= overflow_mask;
+
+			BitArray<NumBits> obj_bits = *this;
+			obj_bits >>= start;
+			obj_bits &= mask;
+
+			return *reinterpret_cast<T*>(obj_bits.bit_chunks_);
+		}
+
+		template <typename T>
 		T from_bits(uint64_t start)
 		{
-			// static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
+			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
 
 			BitArray<NumBits> mask;
 			std::memset(mask.bit_chunks_, 0xff, sizeof(T));

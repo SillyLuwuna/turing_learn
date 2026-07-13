@@ -7,6 +7,7 @@
 #include "utm/state_transition.hpp"
 #include "utm/utm.hpp"
 #include "containers/bit_array.hpp"
+#include "containers/contiguous_bits.hpp"
 
 using namespace turing_learning;
 using namespace turing_learning::containers;
@@ -183,9 +184,22 @@ int main()
 	std::cout << arr.to_str() << "\n";
 
 	uint64_t obj = 137;
-	arr.to_bits<uint64_t, true>(5, obj);
+	arr.to_bits<uint64_t, true>(5, obj, 8);
 	std::cout << arr.to_str() << "\n";
-	std::cout << arr.from_bits<uint64_t>(10) << "\n";
+	std::cout << arr.from_bits<uint64_t>(5, 4) << "\n";
+
+	ContiguousBits<uint8_t, 2, 32> contiguous;
+	for (uint8_t i = 0; i < 5; i++)
+	{
+		contiguous.emplace_at(std::move(i), i);
+	}
+
+	for (uint8_t i = 0; i < 5; i++)
+	{
+		std::cout << std::to_string(contiguous.get(i)) << "\n";
+	}
+
+	std::cout << sizeof(contiguous) * 8 << "\n";
 
 	return 0;
 }
