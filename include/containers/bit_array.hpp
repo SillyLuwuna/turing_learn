@@ -22,7 +22,7 @@ namespace turing_learning::containers
 
 		static constexpr uint64_t container_bytes_ = sizeof(Container);
 		static constexpr uint64_t container_bits_ = container_bytes_ * 8;
-		static constexpr uint64_t container_division_ = std::log2(container_bits_);
+		static constexpr uint64_t container_division_ = std::bit_width(container_bits_) - 1; // log2
 		static constexpr uint64_t container_modulus_ = container_bits_ - 1;
 
 		static constexpr uint64_t chunk_size_ = ((NumBits - 1) / container_bits_) + 1;
@@ -70,10 +70,12 @@ namespace turing_learning::containers
 		template <typename LhsContainer, uint64_t LhsNumBits, typename RhsContainer, uint64_t RhsNumBits, Operator Op>
 		static constexpr void apply_operator(BitArray<LhsContainer, LhsNumBits>& lhs, const BitArray<RhsContainer, RhsNumBits>& rhs)
 		{
-			constexpr bool is_lhs_larger = lhs.container_bytes_ > rhs.container_bytes_;
-			constexpr uint8_t byte_ratio = is_lhs_larger ? (lhs.container_bytes_ / rhs.container_bytes_) : (rhs.container_bytes_ / lhs.container_bytes_);
-			constexpr uint64_t chunks_aligned = is_lhs_larger ? (rhs.total_bytes_ / lhs.container_bytes_) : (lhs.total_bytes_ / rhs.container_bytes_);
-			constexpr uint8_t bytes_missaligned = is_lhs_larger ? (rhs.total_bytes_ % lhs.container_bytes_) : (lhs.total_bytes_ % rhs.container_bytes_);
+			using Lhs = BitArray<LhsContainer, LhsNumBits>;
+			using Rhs = BitArray<RhsContainer, RhsNumBits>;
+			constexpr bool is_lhs_larger = Lhs::container_bytes_ > Rhs::container_bytes_;
+			constexpr uint8_t byte_ratio = is_lhs_larger ? (Lhs::container_bytes_ / Rhs::container_bytes_) : (Rhs::container_bytes_ / Lhs::container_bytes_);
+			constexpr uint64_t chunks_aligned = is_lhs_larger ? (Rhs::total_bytes_ / Lhs::container_bytes_) : (Lhs::total_bytes_ / Rhs::container_bytes_);
+			constexpr uint8_t bytes_missaligned = is_lhs_larger ? (Rhs::total_bytes_ % Lhs::container_bytes_) : (Lhs::total_bytes_ % Rhs::container_bytes_);
 
 			for(uint64_t i = 0; i < chunks_aligned; i++)
 			{
@@ -204,7 +206,6 @@ namespace turing_learning::containers
 			}
 			else
 			{
-
 				bit_chunks_[chunk(idx)] &= ~(1ull << chunk_idx(idx));
 			}
 		}
@@ -403,7 +404,7 @@ namespace turing_learning::containers
 		}
 
 		template<uint64_t LenBits>
-		inline constexpr BitArray<uint64_t, NumBits> get_mask()
+		static inline constexpr BitArray<uint64_t, NumBits> get_mask()
 		{
 			constexpr uint64_t len_bytes = LenBits >> 3; // len_bits / 8
 			constexpr uint64_t overflow_bits = LenBits & 7; // len_bits % 8
@@ -431,7 +432,7 @@ namespace turing_learning::containers
 
 			if constexpr (Clear)
 			{
-				constexpr BitArray<uint64_t, NumBits> const_mask = get_mask<LenBits>(); // FIXME constexpr
+				constexpr BitArray<uint64_t, NumBits> const_mask = get_mask<LenBits>(); // FIXME
 
 				BitArray<uint64_t, NumBits> mask(const_mask);
 				mask <<= start;

@@ -17,7 +17,7 @@ namespace turing_learning::containers
 		ContiguousBits()
 		{ }
 
-		inline constexpr T get(uint64_t idx)
+		inline constexpr T at(uint64_t idx)
 		{
 			return bits_.template from_bits<T>(idx * StepSize, StepSize);
 		}
@@ -27,9 +27,19 @@ namespace turing_learning::containers
 			bits_.template to_bits<T, false, StepSize>(idx * StepSize, std::move(item));
 		}
 
+		inline constexpr void emplace_at(T& item, uint64_t idx)
+		{
+			bits_.template to_bits<T, false, StepSize>(idx * StepSize, item);
+		}
+
 		inline constexpr void rewrite_at(T&& item, uint64_t idx)
 		{
 			bits_.template to_bits<T, true, StepSize>(idx * StepSize, std::move(item));
+		}
+
+		inline constexpr void rewrite_at(T& item, uint64_t idx)
+		{
+			bits_.template to_bits<T, true, StepSize>(idx * StepSize, item);
 		}
 	};
 }

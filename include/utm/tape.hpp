@@ -1,5 +1,6 @@
 #pragma once
 
+#include "benchmark/byte_measurable.hpp"
 #include "utm/symbol.hpp"
 #include <bitset>
 #include <cstdint>
@@ -7,11 +8,14 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include "containers/contiguous_bits.hpp"
 
 namespace turing_learning::utm
 {
+	using namespace turing_learning::containers;
+
 	template<typename Config>
-	class Tape
+	class Tape : benchmark::ByteMeasurable
 	{
 	private:
 		using TapeLenType = typename Config::TapeLenType;
@@ -21,7 +25,8 @@ namespace turing_learning::utm
 		static constexpr uint64_t symbol_bits = Config::symbol_bits;
 
 		// std::bitset<symbol_bits * tape_len> tape_;
-		std::unique_ptr<Symbol[]> tape_;
+		std::unique_ptr<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>> tape_;
+		// std::unique_ptr<Symbol[]> tape_;
 		TapeLenType low_;
 		TapeLenType high_;
 
@@ -65,55 +70,58 @@ namespace turing_learning::utm
 	public:
 		inline constexpr Tape()
 		{
-			tape_ = std::make_unique<uint8_t[]>(tape_len);
+			tape_ = std::make_unique<ContiguousBits<Symbol, uint8_t, 2, tape_len>>();
 			low_ = std::numeric_limits<TapeLenType>::max();
 			high_ = std::numeric_limits<TapeLenType>::min();
 		}
 
 		inline constexpr Symbol read(TapeLenType idx) const
 		{
-			return tape_[idx];
+			return tape_->at(idx);
 		}
 
 		inline constexpr void write(TapeLenType idx, Symbol symbol)
 		{
 			update_bounds(idx, idx, symbol);
-			tape_[idx] = symbol;
+			tape_->rewrite_at(symbol, idx);
 		}
 
 		inline constexpr void write(TapeLenType idx, Symbol symbol, TapeLenType len)
 		{
 			update_bounds(idx, idx + len, symbol);
-			std::memset(tape_.get() + idx, symbol, len * sizeof(TapeLenType));
+			for (TapeLenType i = 0; i < tape_len; i++)
+			{
+				tape_->rewrite_at(symbol, idx);
+			}
+			// std::memset(tape_.get() + idx, symbol, len * sizeof(TapeLenType));
 		}
 
-		template<typename OtherConfig>
-		constexpr void write_to_middle(const Tape<Config>& other)
+		// template<typename OtherConfig>
+		// constexpr void write_to_middle(const Tape<Config>& other)
+		// {
+		// 	using OtherTapeLenType = typename OtherConfig::TapeLenType;
+		// 	constexpr OtherTapeLenType other_tape_len = OtherConfig::tape_len;
+		// 	constexpr TapeLenType start_idx = (tape_len / 2) - (other_tape_len / 2);
+		//
+		// 	if (std::is_constant_evaluated())
+		// 	{
+		// 		const std::vector<Symbol>& mid_tape = other.tape_;
+		// 		for (TapeLenType i = start_idx; i < other_tape_len; i++)
+		// 		{
+		// 			tape_[i] = mid_tape[i];
+		// 		}
+		// 	}
+		// 	else
+		// 	{
+		// 		std::memcpy(this->tape_.get() + start_idx, other.tape_.data(), other_tape_len * sizeof(TapeLenType));
+		// 	}
+		//
+		// 	update_bounds(start_idx, start_idx + other_tape_len);
+		// }
+
+		inline const Symbol operator[](TapeLenType idx)
 		{
-			using OtherTapeLenType = typename OtherConfig::TapeLenType;
-			constexpr OtherTapeLenType other_tape_len = OtherConfig::tape_len;
-
-			constexpr TapeLenType start_idx = (tape_len / 2) - (other_tape_len / 2);
-
-			if (std::is_constant_evaluated())
-			{
-				const std::vector<Symbol>& mid_tape = other.tape_;
-				for (TapeLenType i = start_idx; i < other_tape_len; i++)
-				{
-					tape_[i] = mid_tape[i];
-				}
-			}
-			else
-			{
-				std::memcpy(this->tape_.get() + start_idx, other.tape_.data(), other_tape_len * sizeof(TapeLenType));
-			}
-
-			update_bounds(start_idx, start_idx + other_tape_len);
-		}
-
-		inline const Symbol& operator[](TapeLenType idx)
-		{
-			return tape_[idx];
+			return tape_->at(idx);
 		}
 
 		inline constexpr TapeLenType low()
@@ -148,6 +156,12 @@ namespace turing_learning::utm
 			str += ")";
 
 			return str;
+		}
+
+		uint64_t num_bytes() const override
+		{
+			// uint64_t single_tape_bytes = sizeof(Tape<Config>) + (Config::symbol_bits * tape_len);
+			return sizeof(*this) + sizeof(*tape_);
 		}
 	};
 }

@@ -150,8 +150,8 @@ namespace turing_learning::utm
 
 		uint64_t num_bytes() const override
 		{
-			uint64_t single_tape_bytes = sizeof(Tape<Config>) + (Config::symbol_bits * tape_len);
-			uint64_t tape_bytes = registered_tapes_ * single_tape_bytes;
+			// uint64_t single_tape_bytes = sizeof(Tape<Config>) + (Config::symbol_bits * tape_len);
+			uint64_t tape_bytes = registered_tapes_ * tapes_[0]->num_bytes();
 			uint64_t head_bytes = registered_heads_ * sizeof(Head<Config>);
 			return sizeof(*this) + tape_bytes + head_bytes;
 		}
