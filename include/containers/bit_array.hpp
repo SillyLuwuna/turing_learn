@@ -470,7 +470,7 @@ namespace turing_learning::containers
 		}
 
 		template <typename T>
-		T from_bits(uint64_t start, uint64_t len_bits)
+		T from_bits(uint64_t start, uint64_t len_bits) const
 		{
 			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
 			uint64_t len_bytes = len_bits >> 3; // len_bits / 8
@@ -491,7 +491,7 @@ namespace turing_learning::containers
 		}
 
 		template <typename T>
-		T from_bits(uint64_t start)
+		T from_bits(uint64_t start) const
 		{
 			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
 

@@ -6,9 +6,12 @@
 #include "utm/head_operation.hpp"
 #include "utm/symbol.hpp"
 #include "utm/tape_state.hpp"
+#include "containers/contiguous_bits.hpp"
 
 namespace turing_learning::utm
 {
+	using namespace turing_learning::containers;
+
 	template<typename Config>
 	struct StateTransition
 	{
@@ -23,21 +26,16 @@ namespace turing_learning::utm
 		TapeState<Config> tape_state;
 		Symbol head_writes[num_heads];
 		State end_state;
-		uint16_t head_operations; // 2 bits per tape
-
-		// max 65536 states
-		// max 256 symbols
-		// max 6 tapes
+		ContiguousBits<uint8_t, uint8_t, 2, num_tapes> head_operations;
 
 		inline constexpr void set_head_operation(NumTapesType tape, HeadOperation operation)
 		{
-			uint16_t mask = operation << (tape * 2);
-			head_operations = (head_operations & mask) | mask;
+			head_operations.rewrite_at(operation, tape);
 		}
 
 		inline constexpr HeadOperation get_head_operation(NumTapesType tape) const
 		{
-			return (HeadOperation)((head_operations >> (2 * tape)) & 0x3);
+			return (HeadOperation)head_operations.at(tape);
 		}
 
 		std::string to_str() const

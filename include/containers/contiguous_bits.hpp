@@ -17,7 +17,7 @@ namespace turing_learning::containers
 		ContiguousBits()
 		{ }
 
-		inline constexpr T at(uint64_t idx)
+		inline constexpr T at(uint64_t idx) const
 		{
 			return bits_.template from_bits<T>(idx * StepSize, StepSize);
 		}

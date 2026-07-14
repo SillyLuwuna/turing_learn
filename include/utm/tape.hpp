@@ -24,9 +24,7 @@ namespace turing_learning::utm
 		static constexpr TapeLenType tape_len = Config::tape_len;
 		static constexpr uint64_t symbol_bits = Config::symbol_bits;
 
-		// std::bitset<symbol_bits * tape_len> tape_;
-		std::unique_ptr<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>> tape_;
-		// std::unique_ptr<Symbol[]> tape_;
+		std::unique_ptr<ContiguousBits<Symbol, Symbol, symbol_bits, tape_len>> tape_;
 		TapeLenType low_;
 		TapeLenType high_;
 
