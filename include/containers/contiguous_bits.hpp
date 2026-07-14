@@ -7,11 +7,11 @@
 
 namespace turing_learning::containers
 {
-	template <typename T, uint64_t StepSize, uint64_t Len>
+	template <typename T, typename Container, uint64_t StepSize, uint64_t Len>
 	class ContiguousBits
 	{
 	private:
-		BitArray<StepSize * Len> bits_;
+		BitArray<Container, StepSize * Len> bits_;
 
 	public:
 		ContiguousBits()
@@ -24,12 +24,12 @@ namespace turing_learning::containers
 
 		inline constexpr void emplace_at(T&& item, uint64_t idx)
 		{
-			bits_.template to_bits<T, false>(idx * StepSize, std::move(item), StepSize);
+			bits_.template to_bits<T, false, StepSize>(idx * StepSize, std::move(item));
 		}
 
 		inline constexpr void rewrite_at(T&& item, uint64_t idx)
 		{
-			bits_.template to_bits<T, true>(idx * StepSize, std::move(item), StepSize);
+			bits_.template to_bits<T, true, StepSize>(idx * StepSize, std::move(item));
 		}
 	};
 }
