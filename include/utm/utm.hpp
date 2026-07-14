@@ -17,6 +17,31 @@ namespace turing_learning::utm
 		MaxIterationsReached
 	};
 
+	inline std::string exit_code_str(ExitCode exitcode)
+	{
+		switch (exitcode)
+		{
+			case ExitCode::None:
+				return "None";
+				break;
+			case ExitCode::Finished:
+				return "Finished";
+				break;
+			case ExitCode::MemoryCorrupted:
+				return "MemoryCorrupted";
+				break;
+			case ExitCode::UnknownTransition:
+				return "UnknownTransition";
+				break;
+			case ExitCode::MaxIterationsReached:
+				return "MaxIterationsReached";
+				break;
+			default:
+				return "Unknown";
+				break;
+		}
+	}
+
 	template<typename Config>
 	class Utm : public benchmark::ByteMeasurable
 	{

@@ -87,24 +87,26 @@ namespace turing_learning::containers
 				}
 				else
 				{
+					// std::cout << "here1\n";
 					RhsContainer* op_lhs = (RhsContainer*)(lhs.bit_chunks_ + (i * byte_ratio));
 					RhsContainer op_rhs = rhs.bit_chunks_[i];
 					execute_op<RhsContainer, RhsContainer, Op>(op_lhs, op_rhs);
 				}
 			}
 
-			for (uint8_t i = chunks_aligned; i < (bytes_missaligned + chunks_aligned); i++)
+			uint64_t curr_minor_chunk = 0;
+			for (uint64_t i = chunks_aligned * byte_ratio; i < (bytes_missaligned + (chunks_aligned * byte_ratio)); i++)
 			{
 				if constexpr (is_lhs_larger)
 				{
 					LhsContainer* op_lhs = lhs.bit_chunks_ + chunks_aligned;
-					LhsContainer op_rhs = ((LhsContainer)rhs.bit_chunks_[i]) << (i * rhs.container_bits_);
+					LhsContainer op_rhs = ((LhsContainer)rhs.bit_chunks_[i]) << ((curr_minor_chunk++) * rhs.container_bits_);
 					execute_op<LhsContainer, LhsContainer, Op>(op_lhs, op_rhs);
 				}
 				else
 				{
 					LhsContainer* op_lhs = lhs.bit_chunks_ + i;
-					LhsContainer op_rhs = ((LhsContainer)rhs.bit_chunks_[chunks_aligned]) >> (i * lhs.container_bits_);
+					LhsContainer op_rhs = (LhsContainer)((rhs.bit_chunks_[chunks_aligned]) >> ((curr_minor_chunk++) * lhs.container_bits_));
 					execute_op<LhsContainer, LhsContainer, Op>(op_lhs, op_rhs);
 				}
 			}

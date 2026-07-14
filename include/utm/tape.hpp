@@ -24,7 +24,7 @@ namespace turing_learning::utm
 		static constexpr TapeLenType tape_len = Config::tape_len;
 		static constexpr uint64_t symbol_bits = Config::symbol_bits;
 
-		std::unique_ptr<ContiguousBits<Symbol, Symbol, symbol_bits, tape_len>> tape_;
+		std::unique_ptr<ContiguousBits<Symbol, TapeLenType, symbol_bits, tape_len>> tape_;
 		TapeLenType low_;
 		TapeLenType high_;
 
@@ -68,7 +68,7 @@ namespace turing_learning::utm
 	public:
 		inline constexpr Tape()
 		{
-			tape_ = std::make_unique<ContiguousBits<Symbol, uint8_t, 2, tape_len>>();
+			tape_ = std::make_unique<ContiguousBits<Symbol, TapeLenType, 2, tape_len>>();
 			low_ = std::numeric_limits<TapeLenType>::max();
 			high_ = std::numeric_limits<TapeLenType>::min();
 		}
@@ -135,7 +135,7 @@ namespace turing_learning::utm
 		std::string to_str() const
 		{
 			std::string str;
-			str.reserve(high_ - low_ + 1);
+			// str.reserve(high_ - low_ + 1);
 
 			str += "[";
 			str += std::to_string(low_);
@@ -158,7 +158,6 @@ namespace turing_learning::utm
 
 		uint64_t num_bytes() const override
 		{
-			// uint64_t single_tape_bytes = sizeof(Tape<Config>) + (Config::symbol_bits * tape_len);
 			return sizeof(*this) + sizeof(*tape_);
 		}
 	};

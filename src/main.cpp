@@ -20,156 +20,176 @@ int main()
 
 	const uint8_t num_heads = 1;
 	const uint8_t num_tapes = 1;
-	const uint16_t tape_len = 1000;
+	const uint16_t tape_len = 9999;
 	const uint64_t num_symbols = 3;
 	const uint64_t num_states = 3;
 	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states>;
 
-	const uint64_t max_iters = 10000;
+	const uint64_t max_iters = 10000000;
 
+	std::srand(137);
 	Tape<InstanceConfig> tape0 = Tape<InstanceConfig>();
-	tape0.write(500, 2);
-	tape0.write(501, 2);
-	tape0.write(502, 2);
-	tape0.write(503, 2);
-	tape0.write(504, 1);
-	tape0.write(505, 2);
-	tape0.write(506, 2);
-	tape0.write(507, 1);
-	tape0.write(508, 1);
-	tape0.write(509, 1);
-	tape0.write(510, 2);
-	tape0.write(511, 2);
-	tape0.write(512, 1);
-	tape0.write(513, 2);
-	tape0.write(514, 2);
+	std::vector<uint8_t> vals(9999);
+	for (uint64_t i = 9999; i >= 100; i--)
+	{
+		uint8_t random_value = (std::rand() % 2) + 1;
+		vals[i] = random_value;
+		tape0.write(i, random_value);
+	}
 
-	Head<InstanceConfig> head0 = Head<InstanceConfig>(tape0);
+	for (uint64_t i = 9999; i >= 100; i--)
+	{
+		if (tape0.read(i) != vals[i])
+		{
+			std::cout << std::to_string(tape0.read(i)) << "/" << std::to_string(vals[i]) << " ERROR\n";
+		}
+	}
+	std::cout << tape0.to_str() << "\n";
+	// tape0.write(500, 2);
+	// tape0.write(501, 2);
+	// tape0.write(502, 2);
+	// tape0.write(503, 2);
+	// tape0.write(504, 1);
+	// tape0.write(505, 2);
+	// tape0.write(506, 2);
+	// tape0.write(507, 1);
+	// tape0.write(508, 1);
+	// tape0.write(509, 1);
+	// tape0.write(510, 2);
+	// tape0.write(511, 2);
+	// tape0.write(512, 1);
+	// tape0.write(513, 2);
+	// tape0.write(514, 2);
 
-	Tape<InstanceConfig>* tapes[num_tapes] = { &tape0 };
-	Head<InstanceConfig>* heads[num_tapes] = { &head0 };
-
-	Memory<InstanceConfig> memory(tapes, heads);
-
-	Program<InstanceConfig> program;
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(0)
-		.on_head_read(1)
-		.write(1)
-		.move_head(HeadOperation::Right)
-		.go_to_state(0)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(0)
-		.on_head_read(2)
-		.write(1)
-		.move_head(HeadOperation::Left)
-		.go_to_state(2)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(0)
-		.on_head_read(0)
-		.write(0)
-		.move_head(HeadOperation::Left)
-		.go_to_state(5)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(2)
-		.on_head_read(1)
-		.write(1)
-		.move_head(HeadOperation::Left)
-		.go_to_state(2)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(2)
-		.on_head_read(0)
-		.write(0)
-		.move_head(HeadOperation::Left)
-		.go_to_state(3)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(3)
-		.on_head_read(2)
-		.write(1)
-		.move_head(HeadOperation::Left)
-		.go_to_state(3)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(3)
-		.on_head_read(0)
-		.write(2)
-		.move_head(HeadOperation::Right)
-		.go_to_state(4)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(3)
-		.on_head_read(1)
-		.write(2)
-		.move_head(HeadOperation::Right)
-		.go_to_state(4)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(4)
-		.on_head_read(1)
-		.write(1)
-		.move_head(HeadOperation::Right)
-		.go_to_state(4)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(4)
-		.on_head_read(0)
-		.write(0)
-		.move_head(HeadOperation::Right)
-		.go_to_state(0)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(5)
-		.on_head_read(1)
-		.write(0)
-		.move_head(HeadOperation::Left)
-		.go_to_state(5)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(5)
-		.on_head_read(0)
-		.write(0)
-		.move_head(HeadOperation::Left)
-		.go_to_state(1)
-		.build()
-	);
-
-	Utm<InstanceConfig> utm(program, memory);
-
-	utm.run(max_iters);
-
-	Benchmark benchmark;
-	uint64_t size_bytes = benchmark.test_size(utm);
-	std::cout << "bits: " << size_bytes * 8 << "\n";
-	std::cout << "bytes: " << size_bytes << "\n";
-	std::cout << "kb: " << size_bytes / 1024.0 << "\n";
+	// Head<InstanceConfig> head0 = Head<InstanceConfig>(tape0);
+	//
+	// Tape<InstanceConfig>* tapes[num_tapes] = { &tape0 };
+	// Head<InstanceConfig>* heads[num_tapes] = { &head0 };
+	//
+	// Memory<InstanceConfig> memory(tapes, heads);
+	//
+	// Program<InstanceConfig> program;
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(0)
+	// 	.on_head_read(1)
+	// 	.write(1)
+	// 	.move_head(HeadOperation::Right)
+	// 	.go_to_state(0)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(0)
+	// 	.on_head_read(2)
+	// 	.write(1)
+	// 	.move_head(HeadOperation::Left)
+	// 	.go_to_state(2)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(0)
+	// 	.on_head_read(0)
+	// 	.write(0)
+	// 	.move_head(HeadOperation::Left)
+	// 	.go_to_state(5)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(2)
+	// 	.on_head_read(1)
+	// 	.write(1)
+	// 	.move_head(HeadOperation::Left)
+	// 	.go_to_state(2)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(2)
+	// 	.on_head_read(0)
+	// 	.write(0)
+	// 	.move_head(HeadOperation::Left)
+	// 	.go_to_state(3)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(3)
+	// 	.on_head_read(2)
+	// 	.write(1)
+	// 	.move_head(HeadOperation::Left)
+	// 	.go_to_state(3)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(3)
+	// 	.on_head_read(0)
+	// 	.write(2)
+	// 	.move_head(HeadOperation::Right)
+	// 	.go_to_state(4)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(3)
+	// 	.on_head_read(1)
+	// 	.write(2)
+	// 	.move_head(HeadOperation::Right)
+	// 	.go_to_state(4)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(4)
+	// 	.on_head_read(1)
+	// 	.write(1)
+	// 	.move_head(HeadOperation::Right)
+	// 	.go_to_state(4)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(4)
+	// 	.on_head_read(0)
+	// 	.write(0)
+	// 	.move_head(HeadOperation::Right)
+	// 	.go_to_state(0)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(5)
+	// 	.on_head_read(1)
+	// 	.write(0)
+	// 	.move_head(HeadOperation::Left)
+	// 	.go_to_state(5)
+	// 	.build()
+	// );
+	//
+	// program.add_transition(StateTransitionBuilder<InstanceConfig>()
+	// 	.from_state(5)
+	// 	.on_head_read(0)
+	// 	.write(0)
+	// 	.move_head(HeadOperation::Left)
+	// 	.go_to_state(1)
+	// 	.build()
+	// );
+	//
+	// Utm<InstanceConfig> utm(program, memory);
+	//
+	// utm.run(max_iters);
+	//
+	// Benchmark benchmark;
+	// uint64_t size_bytes = benchmark.test_size(utm);
+	// std::cout << "bits: " << size_bytes * 8 << "\n";
+	// std::cout << "bytes: " << size_bytes << "\n";
+	// std::cout << "kb: " << size_bytes / 1024.0 << "\n";
+	// std::cout << "exit code: " << exit_code_str(utm.exit_code()) << "\n";
+	//
+	// std::cout << tape0.to_str() << "\n";
 
 	// BitArray<uint8_t, 128> arr;
 	//
