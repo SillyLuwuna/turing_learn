@@ -1,0 +1,22 @@
+# started on Wed Jul 15 00:36:38 2026
+
+
+ Performance counter stats for './build/turing_learn':
+
+                 0      context-switches:u               #      0.0 cs/sec  cs_per_second     
+                 0      cpu-migrations:u                 #      0.0 migrations/sec  migrations_per_second
+               143      page-faults:u                    #      0.9 faults/sec  page_faults_per_second
+        165,549.68 msec task-clock:u                     #      1.0 CPUs  CPUs_utilized       
+        51,273,719      L1-dcache-load-misses:u          #      0.0 %  l1d_miss_rate            (42.86%)
+       583,646,661      branch-misses:u                  #      0.1 %  branch_miss_rate         (42.86%)
+ 1,051,754,180,044      branches:u                       #   6353.1 M/sec  branch_frequency     (57.14%)
+   859,509,491,747      cpu-cycles:u                     #      5.2 GHz  cycles_frequency       (57.14%)
+ 5,356,990,444,402      instructions:u                   #      6.2 instructions  insn_per_cycle  (57.14%)
+    27,738,152,247      stalled-cycles-frontend:u        #     0.03 frontend_cycles_idle        (57.14%)
+
+     165.592884497 seconds time elapsed
+
+     164.878394000 seconds user
+       0.095674000 seconds sys
+
+

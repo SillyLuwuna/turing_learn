@@ -78,4 +78,6 @@ namespace turing_learning::memory
 			obj[i] = std::bit_cast<T>(arr);
 		}
 	}
+
+	// TODO constexpr reinterpret cast
 }

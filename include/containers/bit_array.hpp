@@ -76,6 +76,7 @@ namespace turing_learning::containers
 			constexpr uint8_t byte_ratio = is_lhs_larger ? (Lhs::container_bytes_ / Rhs::container_bytes_) : (Rhs::container_bytes_ / Lhs::container_bytes_);
 			constexpr uint64_t chunks_aligned = is_lhs_larger ? (Rhs::total_bytes_ / Lhs::container_bytes_) : (Lhs::total_bytes_ / Rhs::container_bytes_);
 			constexpr uint8_t bytes_missaligned = is_lhs_larger ? (Rhs::total_bytes_ % Lhs::container_bytes_) : (Lhs::total_bytes_ % Rhs::container_bytes_);
+			constexpr uint8_t chunks_missaligned = is_lhs_larger ? (bytes_missaligned / Rhs::container_bytes_) : (bytes_missaligned / Lhs::container_bytes_);
 
 			for(uint64_t i = 0; i < chunks_aligned; i++)
 			{
@@ -87,7 +88,6 @@ namespace turing_learning::containers
 				}
 				else
 				{
-					// std::cout << "here1\n";
 					RhsContainer* op_lhs = (RhsContainer*)(lhs.bit_chunks_ + (i * byte_ratio));
 					RhsContainer op_rhs = rhs.bit_chunks_[i];
 					execute_op<RhsContainer, RhsContainer, Op>(op_lhs, op_rhs);
@@ -95,8 +95,19 @@ namespace turing_learning::containers
 			}
 
 			uint64_t curr_minor_chunk = 0;
-			for (uint64_t i = chunks_aligned * byte_ratio; i < (bytes_missaligned + (chunks_aligned * byte_ratio)); i++)
+			for (uint64_t i = chunks_aligned * byte_ratio; i < (chunks_missaligned + (chunks_aligned * byte_ratio)); i++)
 			{
+				// if (chunks_aligned == 125)
+				// {
+				// 	std::cout << "is_larger: " << is_lhs_larger << "\n";
+				// 	std::cout << std::to_string(bytes_missaligned) << "\n";
+				// 	std::cout << std::to_string(LhsNumBits) << "\n";
+				// 	std::cout << std::to_string(Lhs::chunk_size_) << "\n";
+				// 	std::cout << std::to_string(Lhs::total_bytes_) << "\n";
+				// 	std::cout << std::to_string(Rhs::container_bytes_) << "\n";
+				// 	std::cout << std::to_string(byte_ratio) << "\n";
+				// 	std::cout << std::to_string(i) << "\n";
+				// }
 				if constexpr (is_lhs_larger)
 				{
 					LhsContainer* op_lhs = lhs.bit_chunks_ + chunks_aligned;
@@ -260,6 +271,15 @@ namespace turing_learning::containers
 			uint64_t right_chunk_amount = chunk_idx(shift);
 			uint64_t left_chunk_amount = container_bits_ - right_chunk_amount;
 
+			if (right_chunk_amount == 0)
+			{
+				for (uint64_t i = chunk_size_ - 1; i != ~0ull; i--)
+				{
+					bit_chunks_[i] = left_chunk > i ? 0 : bit_chunks_[i - left_chunk];
+				}
+				return *this;
+			}
+
 			for (uint64_t i = chunk_size_ - 1; i != ~0ull; i--)
 			{
 				uint64_t shifted_chunk_left = left_chunk > i ? 0 : bit_chunks_[i - left_chunk] << right_chunk_amount;
@@ -276,6 +296,15 @@ namespace turing_learning::containers
 			uint64_t left_chunk = right_chunk + 1;
 			uint64_t left_chunk_amount = chunk_idx(shift);
 			uint64_t right_chunk_amount = container_bits_ - left_chunk_amount;
+
+			if (left_chunk_amount == 0)
+			{
+				for (uint64_t i = 0; i < chunk_size_; i++)
+				{
+					bit_chunks_[i] = (i + right_chunk) >= chunk_size_ ? 0 : bit_chunks_[i + right_chunk];
+				}
+				return *this;
+			}
 
 			for (uint64_t i = 0; i < chunk_size_; i++)
 			{
@@ -486,8 +515,16 @@ namespace turing_learning::containers
 			*mask_overflow_target |= overflow_mask;
 
 			BitArray<Container, NumBits> obj_bits = *this;
+			// std::cout << obj_bits[start + 1] << " ";
+			// std::cout << obj_bits[start] << " ";
 			obj_bits >>= start;
 			obj_bits &= mask;
+
+			// std::cout << obj_bits[1] << " ";
+			// std::cout << obj_bits[0] << " ";
+			// std::cout << std::to_string(overflow_bits) << "\n";
+			// std::cout << obj_bits.to_str() << "\n";
+			// std::cout << to_str() << "\n";
 
 			return *reinterpret_cast<T*>(obj_bits.bit_chunks_);
 		}

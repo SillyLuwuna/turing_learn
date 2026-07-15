@@ -68,7 +68,7 @@ namespace turing_learning::utm
 	public:
 		inline constexpr Tape()
 		{
-			tape_ = std::make_unique<ContiguousBits<Symbol, TapeLenType, 2, tape_len>>();
+			tape_ = std::make_unique<ContiguousBits<Symbol, TapeLenType, symbol_bits, tape_len>>();
 			low_ = std::numeric_limits<TapeLenType>::max();
 			high_ = std::numeric_limits<TapeLenType>::min();
 		}
