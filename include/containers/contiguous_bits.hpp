@@ -19,27 +19,32 @@ namespace turing_learning::containers
 
 		inline constexpr T at(uint64_t idx) const
 		{
-			return bits_.template from_bits<T>(idx * StepSize, StepSize);
+			return bits_.template from_bits_fast<T, StepSize>(idx * StepSize);
 		}
 
 		inline constexpr void emplace_at(T&& item, uint64_t idx)
 		{
-			bits_.template to_bits<T, false, StepSize>(idx * StepSize, std::move(item));
+			bits_.template to_bits_fast<T, false, StepSize>(idx * StepSize, std::move(item));
 		}
 
 		inline constexpr void emplace_at(T& item, uint64_t idx)
 		{
-			bits_.template to_bits<T, false, StepSize>(idx * StepSize, item);
+			bits_.template to_bits_fast<T, false, StepSize>(idx * StepSize, item);
 		}
 
 		inline constexpr void rewrite_at(T&& item, uint64_t idx)
 		{
-			bits_.template to_bits<T, true, StepSize>(idx * StepSize, std::move(item));
+			bits_.template to_bits_fast<T, true, StepSize>(idx * StepSize, std::move(item));
 		}
 
 		inline constexpr void rewrite_at(T& item, uint64_t idx)
 		{
-			bits_.template to_bits<T, true, StepSize>(idx * StepSize, item);
+			bits_.template to_bits_fast<T, true, StepSize>(idx * StepSize, item);
+		}
+
+		inline constexpr T operator[](uint64_t idx)
+		{
+			return at(idx);
 		}
 	};
 }

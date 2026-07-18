@@ -21,18 +21,20 @@ int main()
 	const uint8_t num_tapes = 1;
 	const uint16_t tape_len = 10001;
 	const uint64_t num_symbols = 256;
-	const uint64_t num_states = 3;
+	const uint64_t num_states = 6;
 	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states>;
 
 	const uint64_t max_iters = 100000000;
 
 	std::srand(137);
 	Tape<InstanceConfig> tape0 = Tape<InstanceConfig>();
-	for (uint64_t i = 9999; i >= 16; i--)
+	for (uint64_t i = 999; i >= 16; i--)
 	{
 		uint8_t random_value = (std::rand() % 2) + 1;
 		tape0.write(i, random_value);
 	}
+
+	// std::cout << tape0.to_str() << "\n";
 
 	Head<InstanceConfig> head0 = Head<InstanceConfig>(tape0);
 

@@ -9,6 +9,6 @@ else
 	type=$type
 fi
 
-cmake -B build -DCMAKE_BUILD_TYPE=$type
+cmake -B build -DCMAKE_BUILD_TYPE=$type -DBUILD_TESTS=ON
 # cd build
 cmake --build build --parallel
