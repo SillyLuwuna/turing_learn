@@ -9,6 +9,11 @@ namespace turing_learning::utm
 	template<typename Config>
 	struct TapeState
 	{
+	private:
+		mutable uint64_t hash_cache_ = ~0ull;
+
+	public:
+
 		using State = typename Config::State;
 		using Symbol = typename Config::Symbol;
 		using NumHeadsType = typename Config::NumHeadsType;
@@ -20,13 +25,27 @@ namespace turing_learning::utm
 
 		inline constexpr uint64_t hash() const
 		{
-			uint64_t seed = 0;
-			Hasher::hash_combine(seed, state);
+			if (hash_cache_ == ~0ull)
+			{
+				Hasher::hash_combine(hash_cache_, state);
+				for (NumHeadsType i = 0; i < num_heads; i++)
+				{
+					Hasher::hash_combine(hash_cache_, head_reads[i]);
+				}
+			}
+			return hash_cache_;
+		}
+
+		inline constexpr bool operator==(const TapeState<Config>& rhs) const
+		{
+			if (state != rhs.state) return false;
+
 			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
-				Hasher::hash_combine(seed, head_reads[i]);
+				if (head_reads[i] != rhs.head_reads[i]) return false;
 			}
-			return seed;
+
+			return true;
 		}
 
 		std::string to_str() const

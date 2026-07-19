@@ -150,22 +150,22 @@ namespace turing_learning::utm
 
 		bool operator()(const StateTransition<Config>& lhs, const StateTransition<Config>& rhs) const
 		{
-			return lhs.tape_state.hash() == rhs.tape_state.hash();
+			return lhs.tape_state == rhs.tape_state;
 		}
 
 		bool operator()(const StateTransition<Config>& lhs, const TapeState<Config>& rhs) const
 		{
-			return lhs.tape_state.hash() == rhs.hash();
+			return lhs.tape_state == rhs;
 		}
 
 		bool operator()(const TapeState<Config>& lhs, const StateTransition<Config>& rhs) const
 		{
-			return lhs.hash() == rhs.tape_state.hash();
+			return lhs == rhs.tape_state;
 		}
 
 		bool operator()(const TapeState<Config>& lhs, const TapeState<Config>& rhs) const
 		{
-			return lhs.hash() == rhs.hash();
+			return lhs == rhs;
 		}
 	};
 }

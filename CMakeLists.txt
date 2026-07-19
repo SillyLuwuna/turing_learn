@@ -29,15 +29,15 @@ target_include_directories(${LIB} PUBLIC ${INCLUDE_DIR})
 
 target_compile_definitions(${LIB} PRIVATE $<$<CONFIG:Debug>:DEBUG>)
 
-target_compile_options(${LIB} PRIVATE
+add_executable(${BIN} ${MAIN})
+target_link_libraries(${BIN} PUBLIC ${LIB})
+
+target_compile_options(${BIN} PRIVATE
 	-Wall
 	-Wextra
 	-Wpedantic
-	-O2
+	-O3
 )
-
-add_executable(${BIN} ${MAIN})
-target_link_libraries(${BIN} PUBLIC ${LIB})
 
 if (BUILD_TESTS)
 	add_executable(${BIN}_test ${TEST_MAIN})

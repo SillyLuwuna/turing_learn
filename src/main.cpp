@@ -26,12 +26,6 @@ int main()
 
 	const uint64_t max_iters = 10000000000;
 
-	const uint64_t numbers = (num_symbols / 8) + (num_symbols % 8);
-	struct big_number
-	{
-		uint8_t number[numbers];
-	};
-
 	std::srand(137);
 	Tape<InstanceConfig> tape0 = Tape<InstanceConfig>();
 	for (uint64_t i = 19999; i >= 32; i--)

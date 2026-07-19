@@ -455,44 +455,64 @@ namespace turing_learning::containers
 			}
 			else
 			{
-				uint64_t end_byte = (start_idx + LenBits) >> 3; // TODO optimize, don't recalculate again
 				uint8_t start_bits = (*obj_start) << missaligned_bits_start;
-				uint8_t missaligned_bits_end = (start_idx + LenBits) & 7;
-				uint8_t end_mask = ((missaligned_bits_end == 0) ? 0 : (0xff >> (8 - missaligned_bits_end)));
 
 				if (end_byte == start_byte)
 				{
-					start_bits &= end_mask;
+					uint8_t end_mask = 0xff >> (8 - missaligned_bits_end);
+					*start |= start_bits & end_mask;
+				}
+				else if (usable_obj_bytes == 1)
+				{
+					uint8_t end_bits = (*obj_start) >> (8 - missaligned_bits_start);
+
 					*start |= start_bits;
+					*end |= end_bits;
 				}
 				else
 				{
-					uint8_t end_bits;
-					if (missaligned_bits_end == 0)
+					uint8_t offset = 8 - missaligned_bits_start;
+					for (uint64_t i = 0; i < len_bytes; i++)
 					{
-						end_bits = 0;
-					}
-					else if (missaligned_bits_end <= overflow_bits)
-					{
-						uint8_t extra = overflow_bits - missaligned_bits_end;
-						end_bits = obj_start[usable_obj_bytes - 1] >> extra;
-					}
-					else
-					{
-						uint8_t left = missaligned_bits_end - overflow_bits;
-						end_bits = obj_start[usable_obj_bytes - 1] << left;
-						end_bits |= obj_start[usable_obj_bytes - 2] >> (8 - left);
-					}
-
-					uint64_t aligned_bytes = end_byte - start_byte - 1;
-
-					*start |= start_bits;
-					for (uint64_t i = 1; i < (aligned_bytes + 1); i++)
-					{
-						start[i] |= obj_start[i - 1] >> (8 - missaligned_bits_start);
+						// TODO cast into 16bit instead of i and i + 1
 						start[i] |= obj_start[i] << missaligned_bits_start;
+						start[i + 1] |= obj_start[i] >> offset;
 					}
-					*end |= end_bits;
+
+					if (extra_byte > 0)
+					{
+						uint64_t last_idx = len_bytes;
+						uint8_t last_val = obj_start[last_idx] & overflow_mask;
+						start[last_idx] |= last_val << missaligned_bits_start;
+						start[last_idx + 1] |= last_val >> offset;
+					}
+
+					// uint8_t end_bits;
+					// if (missaligned_bits_end == 0)
+					// {
+					// 	end_bits = 0;
+					// }
+					// else if (missaligned_bits_end <= overflow_bits)
+					// {
+					// 	uint8_t extra = overflow_bits - missaligned_bits_end;
+					// 	end_bits = obj_start[usable_obj_bytes - 1] >> extra;
+					// }
+					// else
+					// {
+					// 	uint8_t left = missaligned_bits_end - overflow_bits;
+					// 	end_bits = obj_start[usable_obj_bytes - 1] << left;
+					// 	end_bits |= obj_start[usable_obj_bytes - 2] >> (8 - left);
+					// }
+					//
+					// uint64_t aligned_bytes = end_byte - start_byte - 1;
+					//
+					// *start |= start_bits;
+					// for (uint64_t i = 1; i < (aligned_bytes + 1); i++)
+					// {
+					// 	start[i] |= obj_start[i - 1] >> (8 - missaligned_bits_start);
+					// 	start[i] |= obj_start[i] << missaligned_bits_start;
+					// }
+					// *end |= end_bits;
 				}
 			}
 		}
@@ -517,7 +537,7 @@ namespace turing_learning::containers
 		}
 
 		template <typename T, uint64_t LenBits>
-		T from_bits_fast(uint64_t start_idx) const
+		constexpr T from_bits_fast(uint64_t start_idx) const
 		{
 			// TODO for efficiency, instead of using uint8_t, use maximum chunk size (tricky)
 			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
