@@ -390,24 +390,6 @@ namespace turing_learning::containers
 			return *this;
 		}
 
-		// template<uint64_t LenBits>
-		// static inline constexpr BitArray<uint64_t, NumBits> get_mask()
-		// {
-		// 	constexpr uint64_t len_bytes = LenBits >> 3; // len_bits / 8
-		// 	constexpr uint64_t overflow_bits = LenBits & 7; // len_bits % 8
-		// 	constexpr uint8_t overflow_mask = 0xff >> (8 - overflow_bits);
-		//
-		// 	BitArray<uint64_t, NumBits> mask;
-		//
-		// 	memory::fill<uint64_t, len_bytes, mask.chunk_size_>(mask.bit_chunks_, 0xff);
-		//
-		// 	std::array<uint8_t, mask.total_bytes_> mask_bytes = memory::get_bytes<uint64_t, mask.chunk_size_>(mask.bit_chunks_);
-		// 	mask_bytes[len_bytes] |= overflow_mask;
-		// 	memory::set_bytes<uint64_t, mask.chunk_size_>(mask.bit_chunks_, mask_bytes);
-		//
-		// 	return mask;
-		// }
-
 		// clearing is inefficient
 		template <typename T, bool Clear, uint64_t LenBits>
 		constexpr void to_bits_fast(uint64_t start_idx, const T& obj)
@@ -417,68 +399,71 @@ namespace turing_learning::containers
 			constexpr uint8_t overflow_bits = LenBits & 7; // len_bits % 8
 			constexpr uint8_t overflow_mask = (overflow_bits == 0) ? 0 : 0xff >> (8 - overflow_bits);
 			constexpr uint8_t extra_byte = (overflow_bits == 0) ? 0 : 1;
-			constexpr uint64_t obj_bytes = len_bytes + extra_byte;
+			constexpr uint64_t usable_obj_bytes = len_bytes + extra_byte;
+			constexpr uint64_t true_obj_bytes = sizeof(T);
+			if constexpr(true_obj_bytes < usable_obj_bytes) throw std::runtime_error("object is smaller than the specified bit length");
+
+			uint8_t missaligned_bits_start = (start_idx & 7);
+			uint64_t start_byte = (start_idx >> 3);
+			uint8_t* start = (uint8_t*)bit_chunks_ + start_byte;
+
+			uint64_t missaligned_bits_end = (start_idx + LenBits) & 7;
+			uint64_t end_byte = (start_idx + LenBits) >> 3;
+			uint8_t* end = (uint8_t*)bit_chunks_ + end_byte;
+
+			bool aligned = (missaligned_bits_start == 0);
 
 			if constexpr (Clear)
 			{
-				uint8_t missaligned_bits_start = (start_idx & 7);
-				bool aligned = (missaligned_bits_start == 0);
-				uint64_t start_byte = (start_idx >> 3);
-
 				if (aligned)
 				{
-					std::memset(((uint8_t*)bit_chunks_) + start_byte, 0x00, len_bytes);
-					*(((uint8_t*)bit_chunks_) + start_byte + len_bytes) &= ~overflow_mask;
+					std::memset(start, 0x00, len_bytes);
+					start[len_bytes] &= ~overflow_mask;
 				}
 				else
 				{
-					uint64_t end_byte = (start_idx + LenBits) >> 3;
 					uint8_t start_mask = (0xff << missaligned_bits_start);
-					uint64_t missaligned_bits_end = (start_idx + LenBits) & 7;
 					uint8_t end_mask = ((missaligned_bits_end == 0) ? 0 : (0xff >> (8 - missaligned_bits_end)));
 
 					if (end_byte == start_byte)
 					{
 						start_mask &= end_mask;
-						*(((uint8_t*)bit_chunks_) + start_byte) &= ~start_mask;
+						*start &= ~start_mask;
 					}
 					else
 					{
 						uint64_t aligned_bytes = end_byte - start_byte - 1;
 
-						*(((uint8_t*)bit_chunks_) + start_byte) &= ~start_mask;
+						*start &= ~start_mask;
 						std::memset(((uint8_t*)bit_chunks_) + start_byte + 1, 0x00, aligned_bytes);
-						*(((uint8_t*)bit_chunks_) + end_byte) &= ~end_mask;
+						*end &= ~end_mask;
 					}
 				}
 			}
 
-			uint8_t missaligned_bits_start = (start_idx & 7);
-			bool aligned = (missaligned_bits_start == 0);
-			uint64_t start_byte = (start_idx >> 3);
+			uint8_t* obj_start = (uint8_t*)&obj;
 
 			if (aligned)
 			{
-				std::memcpy(((uint8_t*)bit_chunks_) + start_byte, &obj, len_bytes);
+				std::memcpy(start, obj_start, len_bytes);
 
-				// uint8_t end_bits = (*((uint8_t*)&obj + len_bytes)) & overflow_mask;
 				if (extra_byte > 0)
 				{
-					uint8_t end_bits = (*((uint8_t*)&obj + len_bytes + extra_byte)) & overflow_mask; // FIXME
-					*((uint8_t*)bit_chunks_ + start_byte + len_bytes) |= end_bits;
+					uint8_t end_bits = obj_start[len_bytes + extra_byte - 1] & overflow_mask;
+					start[len_bytes + extra_byte - 1] |= end_bits;
 				}
 			}
 			else
 			{
 				uint64_t end_byte = (start_idx + LenBits) >> 3; // TODO optimize, don't recalculate again
-				uint8_t start_bits = ((*(uint8_t*)&obj) << missaligned_bits_start);
+				uint8_t start_bits = (*obj_start) << missaligned_bits_start;
 				uint8_t missaligned_bits_end = (start_idx + LenBits) & 7;
 				uint8_t end_mask = ((missaligned_bits_end == 0) ? 0 : (0xff >> (8 - missaligned_bits_end)));
 
 				if (end_byte == start_byte)
 				{
 					start_bits &= end_mask;
-					*(((uint8_t*)bit_chunks_) + start_byte) |= start_bits;
+					*start |= start_bits;
 				}
 				else
 				{
@@ -490,19 +475,16 @@ namespace turing_learning::containers
 					else if (missaligned_bits_end <= overflow_bits)
 					{
 						uint8_t extra = overflow_bits - missaligned_bits_end;
-						end_bits = *((uint8_t*)&obj + obj_bytes - 1) >> extra;
+						end_bits = obj_start[usable_obj_bytes - 1] >> extra;
 					}
 					else
 					{
 						uint8_t left = missaligned_bits_end - overflow_bits;
-						end_bits = *((uint8_t*)&obj + obj_bytes - 1) << left;
-						end_bits |= *((uint8_t*)&obj + obj_bytes - 2) >> (8 - left);
+						end_bits = obj_start[usable_obj_bytes - 1] << left;
+						end_bits |= obj_start[usable_obj_bytes - 2] >> (8 - left);
 					}
 
 					uint64_t aligned_bytes = end_byte - start_byte - 1;
-					uint8_t* start = ((uint8_t*)bit_chunks_) + start_byte;
-					uint8_t* end = ((uint8_t*)bit_chunks_) + end_byte;
-					uint8_t* obj_start = (uint8_t*)&obj;
 
 					*start |= start_bits;
 					for (uint64_t i = 1; i < (aligned_bytes + 1); i++)
@@ -514,35 +496,6 @@ namespace turing_learning::containers
 				}
 			}
 		}
-
-		// clearing is inefficient
-		// template <typename T, bool Clear, uint64_t LenBits>
-		// constexpr void to_bits(uint64_t start, const T& obj)
-		// {
-		// 	static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
-		// 	constexpr uint64_t len_bytes = LenBits >> 3; // len_bits / 8
-		// 	constexpr uint64_t overflow_bits = LenBits & 7; // len_bits % 8
-		// 	constexpr uint8_t overflow_mask = 0xff >> (8 - overflow_bits);
-		//
-		// 	if constexpr (Clear)
-		// 	{
-		// 		constexpr BitArray<uint64_t, NumBits> const_mask = get_mask<LenBits>(); // FIXME
-		//
-		// 		BitArray<uint64_t, NumBits> mask(const_mask);
-		// 		mask <<= start;
-		// 		*this &= ~mask;
-		// 	}
-		//
-		// 	BitArray<uint64_t, NumBits> obj_bits;
-		// 	std::memcpy(obj_bits.bit_chunks_, &obj, len_bytes);
-		//
-		// 	uint8_t copy_source = (*((uint8_t*)&obj + len_bytes)) & overflow_mask;
-		// 	uint8_t* copy_target = (uint8_t*)obj_bits.bit_chunks_ + len_bytes;
-		// 	*copy_target |= copy_source;
-		//
-		// 	obj_bits <<= start;
-		// 	*this |= obj_bits;
-		// }
 
 		template <typename T, bool Clear>
 		constexpr void to_bits(uint64_t start, const T& obj)
@@ -566,76 +519,70 @@ namespace turing_learning::containers
 		template <typename T, uint64_t LenBits>
 		T from_bits_fast(uint64_t start_idx) const
 		{
+			// TODO for efficiency, instead of using uint8_t, use maximum chunk size (tricky)
 			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
 			constexpr uint64_t len_bytes = LenBits >> 3; // len_bits / 8
 			constexpr uint64_t overflow_bits = LenBits & 7; // len_bits % 8
 			constexpr uint8_t overflow_mask = (overflow_bits == 0) ? 0 : 0xff >> (8 - overflow_bits);
 			constexpr uint8_t extra_byte = overflow_bits == 0 ? 0 : 1;
-			constexpr uint64_t obj_bytes = len_bytes + extra_byte;
+			constexpr uint64_t usable_obj_bytes = len_bytes + extra_byte;
+			constexpr uint64_t true_obj_bytes = sizeof(T);
+			if constexpr(true_obj_bytes < usable_obj_bytes) throw std::runtime_error("object is smaller than the specified bit length");
 
-			uint8_t obj[obj_bytes];
-
-
-			uint8_t missaligned_bits_start = (start_idx & 7);
-			bool aligned = (missaligned_bits_start == 0);
 			uint64_t start_byte = (start_idx >> 3);
 			uint8_t* start = (uint8_t*)bit_chunks_ + start_byte;
+			uint64_t end_byte = (start_idx + LenBits) >> 3;
+			uint8_t* end = (uint8_t*)bit_chunks_ + end_byte;
 
+			uint8_t missaligned_bits_start = (start_idx & 7);
+			uint8_t missaligned_bits_end = (start_idx + LenBits) & 7;
+			uint8_t end_mask = ((missaligned_bits_end == 0) ? 0 : (0xff >> (8 - missaligned_bits_end)));
+
+			uint8_t obj[true_obj_bytes];
+			memset(obj, 0x00, true_obj_bytes);
+
+			bool aligned = (missaligned_bits_start == 0);
 			if (aligned)
 			{
-				std::memcpy(obj, ((uint8_t*)bit_chunks_) + start_byte, len_bytes);
+				std::memcpy(obj, start, len_bytes);
 
 				if (extra_byte > 0)
 				{
-					uint8_t end_bits = start[obj_bytes - 1] & overflow_mask;
-					obj[obj_bytes - 1] |= end_bits;
+					// uint8_t overflow_mask = 0xff >> (8 - overflow_bits);
+					uint8_t end_bits = start[len_bytes] & overflow_mask;
+					obj[len_bytes] = end_bits;
 				}
 			}
 			else
 			{
-				// TODO
-			// 	uint64_t end_byte = (start_idx + LenBits) >> 3;
-			// 	uint8_t start_bits = start[0] >> missaligned_bits_start; // FIXME wrong
-			// 	uint8_t missaligned_bits_end = (start_idx + LenBits) & 7;
-			// 	uint8_t end_mask = ((missaligned_bits_end == 0) ? 0 : (0xff >> (8 - missaligned_bits_end)));
-			//
-			// 	if (end_byte == start_byte)
-			// 	{
-			// 		start_bits &= end_mask;
-			// 		*(((uint8_t*)bit_chunks_) + start_byte) |= start_bits;
-			// 	}
-			// 	else
-			// 	{
-			// 		uint8_t end_bits;
-			// 		if (missaligned_bits_end == 0)
-			// 		{
-			// 			end_bits = 0;
-			// 		}
-			// 		else if (missaligned_bits_end <= overflow_bits)
-			// 		{
-			// 			uint8_t extra = overflow_bits - missaligned_bits_end;
-			// 			end_bits = *((uint8_t*)&obj + len_bytes) >> extra;
-			// 		}
-			// 		else
-			// 		{
-			// 			uint8_t left = missaligned_bits_end - overflow_bits;
-			// 			end_bits = *((uint8_t*)&obj + len_bytes) << left;
-			// 			end_bits |= *((uint8_t*)&obj + len_bytes - 1) >> (8 - left);
-			// 		}
-			//
-			// 		uint64_t aligned_bytes = end_byte - start_byte - 1;
-			// 		// uint8_t* start = ((uint8_t*)bit_chunks_) + start_byte;
-			// 		uint8_t* end = ((uint8_t*)bit_chunks_) + end_byte;
-			// 		uint8_t* obj_start = (uint8_t*)&obj;
-			//
-			// 		*start_idx |= start_bits;
-			// 		for (uint64_t i = 1; i < (aligned_bytes + 1); i++)
-			// 		{
-			// 			start[i] |= obj_start[i - 1] >> (8 - missaligned_bits_start);
-			// 			start[i] |= obj_start[i] << missaligned_bits_start;
-			// 		}
-			// 		*end |= end_bits;
-			// 	}
+				if (end_byte == start_byte)
+				{
+					uint8_t start_mask = 0xff << missaligned_bits_start;
+					uint8_t obj_mask = (end_mask == 0) ? start_mask : start_mask & end_mask;
+					*obj = (*start & obj_mask) >> missaligned_bits_start;
+				}
+				else if (usable_obj_bytes == 1)
+				{
+					uint8_t start_bits = start[0] >> missaligned_bits_start;
+					uint8_t end_bits = (*end) & end_mask;
+
+					end_bits <<= (8 - missaligned_bits_start);
+					*obj = (start_bits | end_bits);
+				}
+				else
+				{
+					uint8_t offset = 8 - missaligned_bits_start;
+					for (uint64_t i = 0; i < len_bytes; i++)
+					{
+						obj[i] = (start[i] >> missaligned_bits_start) | (start[i + 1] << offset);
+					}
+
+					if (extra_byte > 0)
+					{
+						uint64_t last_idx = len_bytes;
+						obj[last_idx] = ((start[last_idx] >> missaligned_bits_start) | ((start[last_idx + 1] & end_mask) << offset)) & overflow_mask;
+					}
+				}
 			}
 
 			return *reinterpret_cast<T*>(obj);

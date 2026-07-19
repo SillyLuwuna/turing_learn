@@ -17,20 +17,26 @@ using namespace turing_learning::benchmark;
 
 int main()
 {
-	const uint8_t num_heads = 1;
-	const uint8_t num_tapes = 1;
-	const uint16_t tape_len = 10001;
+	const uint64_t num_heads = 1;
+	const uint64_t num_tapes = 1;
+	const uint64_t tape_len = 20001;
 	const uint64_t num_symbols = 256;
 	const uint64_t num_states = 6;
 	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states>;
 
-	const uint64_t max_iters = 100000000;
+	const uint64_t max_iters = 10000000000;
+
+	const uint64_t numbers = (num_symbols / 8) + (num_symbols % 8);
+	struct big_number
+	{
+		uint8_t number[numbers];
+	};
 
 	std::srand(137);
 	Tape<InstanceConfig> tape0 = Tape<InstanceConfig>();
-	for (uint64_t i = 999; i >= 16; i--)
+	for (uint64_t i = 19999; i >= 32; i--)
 	{
-		uint8_t random_value = (std::rand() % 2) + 1;
+		uint64_t random_value = (std::rand() % 2) + 1;
 		tape0.write(i, random_value);
 	}
 
@@ -39,7 +45,7 @@ int main()
 	Head<InstanceConfig> head0 = Head<InstanceConfig>(tape0);
 
 	Tape<InstanceConfig>* tapes[num_tapes] = { &tape0 };
-	Head<InstanceConfig>* heads[num_tapes] = { &head0 };
+	Head<InstanceConfig>* heads[num_heads] = { &head0 };
 
 	Memory<InstanceConfig> memory(tapes, heads);
 
