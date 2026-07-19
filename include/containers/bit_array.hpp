@@ -471,48 +471,25 @@ namespace turing_learning::containers
 				}
 				else
 				{
-					uint8_t offset = 8 - missaligned_bits_start;
+					// uint8_t offset = 8 - missaligned_bits_start;
 					for (uint64_t i = 0; i < len_bytes; i++)
 					{
-						// TODO cast into 16bit instead of i and i + 1
-						start[i] |= obj_start[i] << missaligned_bits_start;
-						start[i + 1] |= obj_start[i] >> offset;
+						// start[i] |= obj_start[i] << missaligned_bits_start;
+						// start[i + 1] |= obj_start[i] >> offset;
+						uint16_t* curr = (uint16_t*)(start + i);
+						*curr |= ((uint16_t)obj_start[i] << missaligned_bits_start);
 					}
 
 					if (extra_byte > 0)
 					{
 						uint64_t last_idx = len_bytes;
-						uint8_t last_val = obj_start[last_idx] & overflow_mask;
-						start[last_idx] |= last_val << missaligned_bits_start;
-						start[last_idx + 1] |= last_val >> offset;
+						// uint8_t last_val = obj_start[last_idx] & overflow_mask;
+						// start[last_idx] |= last_val << missaligned_bits_start;
+						// start[last_idx + 1] |= last_val >> offset;
+						uint16_t last_val = obj_start[last_idx] & overflow_mask;
+						uint16_t* curr = (uint16_t*)(start + last_idx);
+						*curr |= last_val << missaligned_bits_start;
 					}
-
-					// uint8_t end_bits;
-					// if (missaligned_bits_end == 0)
-					// {
-					// 	end_bits = 0;
-					// }
-					// else if (missaligned_bits_end <= overflow_bits)
-					// {
-					// 	uint8_t extra = overflow_bits - missaligned_bits_end;
-					// 	end_bits = obj_start[usable_obj_bytes - 1] >> extra;
-					// }
-					// else
-					// {
-					// 	uint8_t left = missaligned_bits_end - overflow_bits;
-					// 	end_bits = obj_start[usable_obj_bytes - 1] << left;
-					// 	end_bits |= obj_start[usable_obj_bytes - 2] >> (8 - left);
-					// }
-					//
-					// uint64_t aligned_bytes = end_byte - start_byte - 1;
-					//
-					// *start |= start_bits;
-					// for (uint64_t i = 1; i < (aligned_bytes + 1); i++)
-					// {
-					// 	start[i] |= obj_start[i - 1] >> (8 - missaligned_bits_start);
-					// 	start[i] |= obj_start[i] << missaligned_bits_start;
-					// }
-					// *end |= end_bits;
 				}
 			}
 		}
@@ -591,16 +568,18 @@ namespace turing_learning::containers
 				}
 				else
 				{
-					uint8_t offset = 8 - missaligned_bits_start;
+					// uint8_t offset = 8 - missaligned_bits_start;
 					for (uint64_t i = 0; i < len_bytes; i++)
 					{
-						obj[i] = (start[i] >> missaligned_bits_start) | (start[i + 1] << offset);
+						obj[i] = *((uint16_t*)(start + i)) >> missaligned_bits_start;
+						// obj[i] = (start[i] >> missaligned_bits_start) | (start[i + 1] << offset);
 					}
 
 					if (extra_byte > 0)
 					{
 						uint64_t last_idx = len_bytes;
-						obj[last_idx] = ((start[last_idx] >> missaligned_bits_start) | ((start[last_idx + 1] & end_mask) << offset)) & overflow_mask;
+						obj[last_idx] = (*((uint16_t*)(start + last_idx)) >> missaligned_bits_start) & overflow_mask;
+						// obj[last_idx] = ((start[last_idx] >> missaligned_bits_start) | ((start[last_idx + 1] & end_mask) << offset)) & overflow_mask;
 					}
 				}
 			}

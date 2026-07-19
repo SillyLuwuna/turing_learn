@@ -21,6 +21,7 @@ int main()
 	const uint64_t num_tapes = 1;
 	const uint64_t tape_len = 20001;
 	const uint64_t num_symbols = 256;
+	// const uint64_t num_symbols = 3;
 	const uint64_t num_states = 6;
 	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states>;
 
