@@ -5,6 +5,7 @@
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
 #include "utm/state_transition.hpp"
+#include "utm/synthesis/dataset.hpp"
 #include "utm/utm.hpp"
 #include "containers/bit_array.hpp"
 #include "containers/contiguous_bits.hpp"
@@ -17,15 +18,15 @@ using namespace turing_learning::benchmark;
 
 int main()
 {
+	// treat as maximums
 	const uint64_t num_heads = 1;
 	const uint64_t num_tapes = 1;
 	const uint64_t tape_len = 20001;
 	const uint64_t num_symbols = 256;
-	// const uint64_t num_symbols = 3;
 	const uint64_t num_states = 6;
-	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states>;
+	const uint64_t max_iterations = 10000000000;
+	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states, max_iterations>;
 
-	const uint64_t max_iters = 10000000000;
 
 	std::srand(137);
 	Tape<InstanceConfig> tape0 = Tape<InstanceConfig>();
@@ -156,7 +157,7 @@ int main()
 
 	Utm<InstanceConfig> utm(program, memory);
 
-	utm.run(max_iters);
+	utm.run();
 
 	Benchmark benchmark;
 	uint64_t size_bytes = benchmark.test_size(utm);
@@ -167,52 +168,23 @@ int main()
 
 	std::cout << tape0.to_str() << "\n";
 
-	// BitArray<uint8_t, 128> arr;
-	//
-	// std::cout << arr.to_str() << "\n";
-	// arr[0] = 1;
-	// arr[1] = 1;
-	// arr[63] = 1;
-	// std::cout << arr.to_str() << "\n";
-	// arr <<= 63;
-	// std::cout << arr.to_str() << "\n";
-	// arr >>= 63;
-	// std::cout << arr.to_str() << "\n";
-	//
-	// uint64_t obj = 137;
-	// arr.to_bits<uint64_t, true, 8>(5, obj);
-	//
-	// std::cout << arr.to_str() << "\n";
-	//
-	// std::cout << arr.from_bits<uint64_t>(5, 8) << "\n";
-	//
-	// ContiguousBits<uint8_t, uint8_t, 2, 4> contiguous;
-	// for (uint8_t i = 0; i < 4; i++)
-	// {
-	// 	contiguous.emplace_at(i, i);
-	// }
-	//
-	// for (uint8_t i = 0; i < 4; i++)
-	// {
-	// 	std::cout << std::to_string(contiguous.at(i)) << "\n";
-	// }
-	//
-	// std::cout << sizeof(contiguous) * 8 << "\n";
 
-	// ContiguousBits<uint8_t, uint8_t, 2, 1000> bits;
-	//
-	// bits.rewrite_at(2, 500);
-	// std::cout << std::to_string(bits.at(500)) << "\n";
+	std::vector<InstanceConfig::Symbol> dataset_input0;
+	dataset_input0.emplace_back(1);
+	dataset_input0.emplace_back(2);
+	dataset_input0.emplace_back(2);
+	dataset_input0.emplace_back(1);
+	dataset_input0.emplace_back(2);
+	dataset_input0.emplace_back(2);
+	dataset_input0.emplace_back(1);
 
-	// BitArray<uint8_t, 128> bits;
-	//
-	// std::cout << bits.to_str() << "\n";
-	//
-	// bits.to_bits<uint8_t, true, 2>(3, 2);
-	//
-	// std::cout << bits.to_str() << "\n";
-	//
-	// std::cout << std::to_string(bits.from_bits<uint8_t>(3, 2)) << "\n";
+	std::vector<InstanceConfig::Symbol> dataset_output0;
+	dataset_output0.emplace_back(2);
+	dataset_output0.emplace_back(1);
+	dataset_output0.emplace_back(1);
+
+	synthesis::Dataset<InstanceConfig> dataset;
+	dataset.add_entry(std::move(dataset_input0), std::move(dataset_output0));
 
 	return 0;
 }

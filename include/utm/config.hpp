@@ -6,7 +6,7 @@
 
 namespace turing_learning::utm
 {
-	template<uint64_t NumHeads, uint64_t NumTapes, uint64_t TapeLen, uint64_t NumSymbols, uint64_t NumStates>
+	template<uint64_t NumHeads, uint64_t NumTapes, uint64_t TapeLen, uint64_t NumSymbols, uint64_t NumStates, uint64_t MaxIterations>
 	struct Config
 	{
 		using NumHeadsType = typename SizeSelector<NumHeads>::type;
@@ -20,6 +20,7 @@ namespace turing_learning::utm
 		static constexpr TapeLenType tape_len = TapeLen;
 		static constexpr Symbol num_symbols = NumSymbols;
 		static constexpr State num_states = NumStates;
+		static constexpr uint64_t max_iterations = MaxIterations;
 
 		static constexpr uint64_t get_required_bits(uint64_t size)
 		{

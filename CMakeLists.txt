@@ -37,6 +37,9 @@ target_compile_options(${BIN} PRIVATE
 	-Wextra
 	-Wpedantic
 	-O3
+	#-fno-inline
+	#-fno-omit-frame-pointer
+	#-g
 )
 
 if (BUILD_TESTS)

@@ -3,6 +3,8 @@
 #include "utm/symbol.hpp"
 #include "hashing/hasher.hpp"
 #include <cstdint>
+#include <cstring>
+#include <iostream>
 
 namespace turing_learning::utm
 {
@@ -21,7 +23,7 @@ namespace turing_learning::utm
 		static constexpr NumHeadsType num_heads = Config::num_heads;
 
 		State state;
-		Symbol head_reads[num_heads]; // doesn't use NumHeads
+		Symbol head_reads[num_heads];
 
 		inline constexpr uint64_t hash() const
 		{

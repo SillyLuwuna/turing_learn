@@ -13,12 +13,12 @@ namespace turing_learning::utm
 	class Program : public benchmark::ByteMeasurable
 	{
 	private:
+		// std::vector<std::vector<StateTransition<Config>>> transitions_; // TODO optimize with this
 		std::unordered_set<StateTransition<Config>, StateTransitionHash<Config>, StateTransitionEqual<Config>> transitions_;
 
 	public:
 		inline constexpr void add_transition(StateTransition<Config>&& transition)
 		{
-			// std::cout << "registered transition: " << transition.to_str() << "\n";
 			transitions_.emplace(std::move(transition));
 		}
 

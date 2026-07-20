@@ -46,6 +46,8 @@ namespace turing_learning::utm
 	class Utm : public benchmark::ByteMeasurable
 	{
 	private:
+		static constexpr uint64_t max_iterations_ = Config::max_iterations;
+
 		Program<Config>& program_;
 		Memory<Config>& memory_;
 		ExitCode exit_code_;
@@ -111,10 +113,10 @@ namespace turing_learning::utm
 #endif
 		}
 
-		constexpr void run(uint64_t max_iter)
+		constexpr void run()
 		{
 			uint64_t step_count = 0;
-			while ((exit_code_ == ExitCode::None) && (step_count < max_iter))
+			while ((exit_code_ == ExitCode::None) && (step_count < max_iterations_))
 			{
 #ifdef DEBUG
 				std::cout << "\n====== step " << step_count << " ======\n";
@@ -123,7 +125,7 @@ namespace turing_learning::utm
 				step_count++;
 			}
 
-			if ((step_count >= max_iter) && (exit_code_ == ExitCode::None))
+			if ((step_count >= max_iterations_) && (exit_code_ == ExitCode::None))
 			{
 				exit_code_ = ExitCode::MaxIterationsReached;
 			}
