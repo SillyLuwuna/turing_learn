@@ -12,27 +12,22 @@ namespace turing_learning::utm::synthesis
 	private:
 		using Symbol = typename Config::Symbol;
 
-		std::vector<std::vector<Symbol>> inputs_;
-		std::vector<std::vector<Symbol>> outputs_;
+		std::vector<Tape<Config>> inputs_;
+		std::vector<Tape<Config>> outputs_;
 
 	public:
-		void add_entry(std::vector<Symbol>&& entry_input, std::vector<Symbol>&& entry_output)
+		void add_entry(const std::vector<Symbol>& entry_input, const std::vector<Symbol>& entry_output)
 		{
-			inputs_.emplace_back(std::move(entry_input));
-			outputs_.emplace_back(std::move(entry_output));
+			inputs_.emplace_back(Tape<Config>(entry_input));
+			outputs_.emplace_back(Tape<Config>(entry_output));
 		}
 
-		std::pair<const std::vector<Symbol>&, const std::vector<Symbol>&> get_entry(uint64_t idx)
-		{
-			return std::pair<const std::vector<Symbol>&, const std::vector<Symbol>&>(inputs_[idx], outputs_[idx]);
-		}
-
-		const std::vector<Symbol>& get_input(uint64_t idx)
+		const Tape<Config>& get_input(uint64_t idx)
 		{
 			return inputs_[idx];
 		}
 
-		const std::vector<Symbol>& get_output(uint64_t idx)
+		const Tape<Config>& get_output(uint64_t idx)
 		{
 			return outputs_[idx];
 		}

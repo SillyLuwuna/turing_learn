@@ -73,6 +73,21 @@ namespace turing_learning::utm
 			high_ = std::numeric_limits<TapeLenType>::min();
 		}
 
+		inline constexpr Tape(const std::vector<Symbol>& initial_symbols) : Tape()
+		{
+			uint64_t half_idx = tape_len / 2;
+			uint64_t half_len = initial_symbols.size() / 2;
+
+			low_ = half_idx - half_len;
+			high_ = low_ + initial_symbols.size() - 1;
+
+			uint64_t symbol_idx = 0;
+			for (uint64_t i = low_; i <= high_; i++)
+			{
+				tape_->emplace_at(initial_symbols[symbol_idx++], i);
+			}
+		}
+
 		inline constexpr Symbol read(TapeLenType idx) const
 		{
 			return tape_->at(idx);

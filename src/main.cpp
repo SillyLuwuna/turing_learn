@@ -21,8 +21,8 @@ int main()
 	// treat as maximums
 	const uint64_t num_heads = 1;
 	const uint64_t num_tapes = 1;
-	const uint64_t tape_len = 20001;
-	const uint64_t num_symbols = 256;
+	const uint64_t tape_len = 10001;
+	const uint64_t num_symbols = 3;
 	const uint64_t num_states = 6;
 	const uint64_t max_iterations = 10000000000;
 	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states, max_iterations>;
@@ -30,7 +30,7 @@ int main()
 
 	std::srand(137);
 	Tape<InstanceConfig> tape0 = Tape<InstanceConfig>();
-	for (uint64_t i = 19999; i >= 32; i--)
+	for (uint64_t i = 9999; i >= 32; i--)
 	{
 		uint64_t random_value = (std::rand() % 2) + 1;
 		tape0.write(i, random_value);
@@ -161,12 +161,10 @@ int main()
 
 	Benchmark benchmark;
 	uint64_t size_bytes = benchmark.test_size(utm);
-	std::cout << "bits: " << size_bytes * 8 << "\n";
-	std::cout << "bytes: " << size_bytes << "\n";
 	std::cout << "kb: " << size_bytes / 1024.0 << "\n";
 	std::cout << "exit code: " << exit_code_str(utm.exit_code()) << "\n";
 
-	std::cout << tape0.to_str() << "\n";
+	std::cout << "tape: " << tape0.to_str() << "\n";
 
 
 	std::vector<InstanceConfig::Symbol> dataset_input0;
@@ -184,7 +182,10 @@ int main()
 	dataset_output0.emplace_back(1);
 
 	synthesis::Dataset<InstanceConfig> dataset;
-	dataset.add_entry(std::move(dataset_input0), std::move(dataset_output0));
+	dataset.add_entry(dataset_input0, dataset_output0);
+
+	Tape<InstanceConfig> tape(dataset_input0);
+	std::cout << tape.to_str() << "\n";
 
 	return 0;
 }
