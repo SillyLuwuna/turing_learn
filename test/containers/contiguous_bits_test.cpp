@@ -152,15 +152,15 @@ TEST_CASE("should contain very large misaligned items")
 TEST_CASE("bigger container test")
 {
 	const uint64_t amount = 64;
-	const uint64_t num_bits = 512;
+	const uint64_t num_bits = 9;
 
 	std::srand(137);
 	std::vector<uint16_t> saved_bits(amount);
-	ContiguousBits<uint16_t, uint32_t, 9, amount> bits;
+	ContiguousBits<uint16_t, uint32_t, num_bits, amount> bits;
 
 	for (uint64_t i = 0; i < amount; i++)
 	{
-		const uint64_t max_val = fast_pow(2, 9);
+		const uint64_t max_val = fast_pow(2, num_bits);
 		uint16_t random_value = (std::rand() % max_val);
 
 		bits.rewrite_at(random_value, i);
@@ -170,5 +170,98 @@ TEST_CASE("bigger container test")
 	for (uint64_t i = 0; i < amount; i++)
 	{
 		CHECK(bits[i] == saved_bits[i]);
+	}
+}
+
+TEST_CASE("should equals")
+{
+	const uint64_t amount = 64;
+	const uint64_t num_bits = 9;
+
+	std::srand(137);
+	std::vector<uint16_t> saved_bits(amount);
+	ContiguousBits<uint16_t, uint32_t, num_bits, amount> bits;
+
+	for (uint64_t i = 0; i < amount; i++)
+	{
+		const uint64_t max_val = fast_pow(2, num_bits);
+		uint16_t random_value = (std::rand() % max_val);
+
+		bits.rewrite_at(random_value, i);
+		saved_bits[i] = random_value;
+	}
+
+	ContiguousBits<uint16_t, uint32_t, num_bits, amount> copy = bits;
+
+	for (uint64_t i = 0; i < amount; i++)
+	{
+		uint16_t start = (std::rand() % amount);
+		uint16_t len = (std::rand() % amount) % (amount - start);
+		CHECK(bits.cmp(copy, start, len));
+	}
+}
+
+TEST_CASE("should equals small items")
+{
+	const uint64_t amount = 64;
+	const uint64_t num_bits = 3;
+
+	std::srand(137);
+	std::vector<uint16_t> saved_bits(amount);
+	ContiguousBits<uint16_t, uint8_t, num_bits, amount> bits;
+
+	for (uint64_t i = 0; i < amount; i++)
+	{
+		const uint64_t max_val = fast_pow(2, num_bits);
+		uint16_t random_value = (std::rand() % max_val);
+
+		bits.rewrite_at(random_value, i);
+		saved_bits[i] = random_value;
+	}
+
+	ContiguousBits<uint16_t, uint8_t, num_bits, amount> copy = bits;
+
+	for (uint64_t i = 0; i < amount; i++)
+	{
+		uint16_t start = (std::rand() % amount);
+		uint16_t len = (std::rand() % amount) % (amount - start);
+		CHECK(bits.cmp(copy, start, len));
+	}
+}
+
+TEST_CASE("should not equals")
+{
+	const uint64_t amount = 64;
+	const uint64_t num_bits = 9;
+
+	std::srand(137);
+	std::vector<uint16_t> saved_bits(amount);
+	ContiguousBits<uint16_t, uint8_t, num_bits, amount> bits;
+
+	for (uint64_t i = 0; i < amount; i++)
+	{
+		const uint64_t max_val = fast_pow(2, num_bits);
+		uint16_t random_value = (std::rand() % max_val);
+
+		bits.rewrite_at(random_value, i);
+		saved_bits[i] = random_value;
+	}
+
+	ContiguousBits<uint16_t, uint8_t, num_bits, amount> copy = bits;
+	uint64_t diff_idx = amount / 2;
+	copy.rewrite_at(0, diff_idx);
+
+	for (uint64_t i = 0; i < amount; i++)
+	{
+		uint16_t start = (std::rand() % amount);
+		uint16_t len = (std::rand() % amount) % (amount - start);
+		if (diff_idx >= start && diff_idx < (start + len))
+		{
+			CHECK(!bits.cmp(copy, start, len));
+		}
+		else
+		{
+			CHECK(bits.cmp(copy, start, len));
+		}
 	}
 }

@@ -19,6 +19,7 @@ namespace turing_learning::containers
 
 		inline constexpr T at(uint64_t idx) const
 		{
+			// return bits_.template from_bits<T>(idx * StepSize, StepSize);
 			return bits_.template from_bits_fast<T, StepSize>(idx * StepSize);
 		}
 
@@ -45,6 +46,11 @@ namespace turing_learning::containers
 		inline constexpr T operator[](uint64_t idx)
 		{
 			return at(idx);
+		}
+
+		inline constexpr bool cmp(const ContiguousBits<T, Container, StepSize, Len>& other, uint64_t start, uint64_t len)
+		{
+			return bits_.cmp(other.bits_, start * StepSize, len * StepSize);
 		}
 	};
 }

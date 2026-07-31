@@ -51,6 +51,7 @@ namespace turing_learning::utm
 		Program<Config>& program_;
 		Memory<Config>& memory_;
 		ExitCode exit_code_;
+		uint64_t cycle_count_;
 
 	public:
 		// state 0 is the entry point
@@ -58,7 +59,8 @@ namespace turing_learning::utm
 		inline constexpr Utm(Program<Config>& program, Memory<Config>& memory) :
 			program_(program),
 			memory_(memory),
-			exit_code_(ExitCode::None)
+			exit_code_(ExitCode::None),
+			cycle_count_(0)
 		{ }
 
 		constexpr void step()
@@ -115,25 +117,30 @@ namespace turing_learning::utm
 
 		constexpr void run()
 		{
-			uint64_t step_count = 0;
-			while ((exit_code_ == ExitCode::None) && (step_count < max_iterations_))
+			cycle_count_ = 0;
+			while ((exit_code_ == ExitCode::None) && (cycle_count_ < max_iterations_))
 			{
 #ifdef DEBUG
 				std::cout << "\n====== step " << step_count << " ======\n";
 #endif
 				step();
-				step_count++;
+				cycle_count_++;
 			}
 
-			if ((step_count >= max_iterations_) && (exit_code_ == ExitCode::None))
+			if ((cycle_count_ >= max_iterations_) && (exit_code_ == ExitCode::None))
 			{
 				exit_code_ = ExitCode::MaxIterationsReached;
 			}
 		}
 
-		inline constexpr ExitCode exit_code()
+		inline constexpr ExitCode exit_code() const
 		{
 			return exit_code_;
+		}
+
+		inline constexpr uint64_t cycles_elapsed() const
+		{
+			return cycle_count_;
 		}
 
 		uint64_t num_bytes() const override

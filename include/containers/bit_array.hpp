@@ -517,6 +517,7 @@ namespace turing_learning::containers
 		constexpr T from_bits_fast(uint64_t start_idx) const
 		{
 			// TODO for efficiency, instead of using uint8_t, use maximum chunk size (tricky)
+			// TODO for efficiency, do bit operations on the start/end directly instead of using masks (?)
 			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
 			constexpr uint64_t len_bytes = LenBits >> 3; // len_bits / 8
 			constexpr uint64_t overflow_bits = LenBits & 7; // len_bits % 8
@@ -622,6 +623,117 @@ namespace turing_learning::containers
 
 			return *reinterpret_cast<T*>(obj_bits.bit_chunks_);
 		}
+
+		constexpr bool cmp(const BitArray<Container, NumBits>& other, uint64_t start, uint64_t len) const
+		{
+			uint64_t start_byte = start >> 3;
+			uint64_t start_bit = start & 7;
+			uint8_t* this_start = (uint8_t*)bit_chunks_ + start_byte;
+			uint8_t* other_start = (uint8_t*)other.bit_chunks_ + start_byte;
+
+			uint64_t end_byte = (start + len) >> 3;
+			uint64_t end_bit = (start + len) & 7;
+			uint8_t* this_end = (uint8_t*)bit_chunks_ + end_byte;
+
+			if (this_start == this_end)
+			{
+				uint8_t left_shift = end_bit == 0 ? 0 : (8 - end_bit);
+				uint8_t right_shift = left_shift + start_bit;
+				uint8_t this_byte = (*this_start << left_shift) >> right_shift;
+				uint8_t other_byte = (*other_start << left_shift) >> right_shift;
+				return this_byte == other_byte;
+			}
+
+			bool misaligned_start = start_bit != 0;
+			if (misaligned_start)
+			{
+				uint8_t this_byte = *this_start >> start_bit;
+				uint8_t other_byte = *other_start >> start_bit;
+				if (this_byte != other_byte)
+				{
+					return false;
+				}
+			}
+
+			if (std::memcmp(this_start, other_start, end_byte - start_byte))
+			{
+				return false;
+			}
+
+			uint8_t* other_end = (uint8_t*)other.bit_chunks_ + end_byte;
+
+			bool misaligned_end = end_bit != 0;
+			if (misaligned_end)
+			{
+				uint8_t left_shift = 8 - end_bit;
+				uint8_t this_byte = *this_end << left_shift;
+				uint8_t other_byte = *other_end << left_shift;
+				if (this_byte != other_byte)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		// TODO
+		// template<typename OtherContainer, uint64_t OtherNumBits>
+		// constexpr bool cmp(const BitArray<OtherContainer, OtherNumBits>& other, uint64_t start_bit, uint64_t other_start_bit, uint64_t len) const
+		// {
+			// uint64_t this_start_byte = start_bit >> 3;
+			// uint64_t this_start_bit_offset = start_bit & 7;
+			// uint8_t* this_start = (uint8_t*)bit_chunks_ + this_start_byte;
+			//
+			// uint64_t other_start_byte = other_start_bit >> 3;
+			// uint64_t other_start_bit_offset = other_start_bit & 7;
+			// uint8_t* other_start = (uint8_t*)other.bit_chunks_ + other_start_byte;
+			//
+			// uint64_t this_end_byte = (start_bit + len) >> 3;
+			// uint64_t this_end_bit_offset = (start_bit + len) & 7;
+			// uint8_t* this_end = (uint8_t*)bit_chunks_ + this_end_byte;
+			//
+			// if (this_start == this_end)
+			// {
+			// 	uint8_t left_shift = this_end_bit_offset == 0 ? 0 : (8 - this_end_bit_offset);
+			// 	uint8_t right_shift = left_shift + this_start_bit_offset;
+			// 	uint8_t this_byte = (*this_start << left_shift) >> right_shift;
+			// 	uint8_t other_byte = (*other_start << left_shift) >> right_shift;
+			// 	return this_byte == other_byte;
+			// }
+			//
+			// bool misaligned_start = this_start_bit_offset != 0 || other_start_bit_offset != 0;
+			// if (misaligned_start)
+			// {
+			// 	uint8_t this_byte = *this_start >> this_start_bit_offset;
+			// 	uint8_t other_byte = *other_start >> this_start_bit_offset;
+			// 	if (this_byte != other_byte)
+			// 	{
+			// 		return false;
+			// 	}
+			// }
+			//
+			// if (std::memcmp(this_start, other_start, this_end_byte - this_start_byte))
+			// {
+			// 	return false;
+			// }
+			//
+			// uint8_t* other_end = (uint8_t*)other.bit_chunks_ + this_end_byte;
+			//
+			// bool misaligned_end = this_end_bit_offset != 0;
+			// if (misaligned_end)
+			// {
+			// 	uint8_t left_shift = 8 - this_end_bit_offset;
+			// 	uint8_t this_byte = *this_end << left_shift;
+			// 	uint8_t other_byte = *other_end << left_shift;
+			// 	if (this_byte != other_byte)
+			// 	{
+			// 		return false;
+			// 	}
+			// }
+			//
+			// return true;
+		// }
 	};
 
 }
