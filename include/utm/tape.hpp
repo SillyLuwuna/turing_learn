@@ -22,10 +22,16 @@ namespace turing_learning::utm
 		static constexpr TapeLenType tape_len = Config::tape_len;
 		static constexpr uint64_t symbol_bits = Config::symbol_bits;
 
+		// could be allocated as needed, for memory efficiency
 		std::unique_ptr<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>> tape_;
 		// uint8_t tape_[tape_len];
 		TapeLenType low_;
 		TapeLenType high_;
+
+		inline constexpr void init_tape()
+		{
+			tape_ = std::make_unique<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>>();
+		}
 
 		inline constexpr void update_low(TapeLenType idx)
 		{
@@ -67,9 +73,35 @@ namespace turing_learning::utm
 	public:
 		inline constexpr Tape()
 		{
-			tape_ = std::make_unique<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>>();
+			init_tape();
 			low_ = std::numeric_limits<TapeLenType>::max();
 			high_ = std::numeric_limits<TapeLenType>::min();
+		}
+
+		constexpr Tape(const Tape& other)
+		{
+			low_ = other.low_;
+			high_ = other.high_;
+
+			init_tape();
+			for (TapeLenType i = 0; i < tape_len; i++)
+			{
+				tape_->rewrite_at(other.tape_->at(i), i);
+			}
+		}
+
+		inline constexpr Tape& operator=(const Tape& other)
+		{
+			low_ = other.low_;
+			high_ = other.high_;
+
+			init_tape();
+			for (TapeLenType i = 0; i < tape_len; i++)
+			{
+				tape_->rewrite_at(other.tape_->at(i), i);
+			}
+
+			return *this;
 		}
 
 		inline constexpr Tape(const std::vector<Symbol>& initial_symbols) : Tape()

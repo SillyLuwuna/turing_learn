@@ -14,6 +14,7 @@ using namespace turing_learning;
 using namespace turing_learning::containers;
 using namespace turing_learning::utm;
 using namespace turing_learning::benchmark;
+using namespace turing_learning::utm::synthesis;
 
 
 int main()
@@ -21,7 +22,7 @@ int main()
 	// treat as maximums
 	const uint64_t num_heads = 1;
 	const uint64_t num_tapes = 1;
-	const uint64_t tape_len = 30001;
+	const uint64_t tape_len = 10001;
 	const uint64_t num_symbols = 256;
 	const uint64_t num_states = 6;
 	const uint64_t max_iterations = 10000000000;
@@ -30,18 +31,18 @@ int main()
 
 	std::srand(137);
 	Tape<InstanceConfig> tape0 = Tape<InstanceConfig>();
-	for (uint64_t i = 19999; i >= 32; i--)
+	for (uint64_t i = 9999; i >= 32; i--)
 	{
 		uint64_t random_value = (std::rand() % 2) + 1;
 		tape0.write(i, random_value);
 	}
 
-	// std::cout << tape0.to_str() << "\n";
-
 	Head<InstanceConfig> head0 = Head<InstanceConfig>(tape0);
 
 	Tape<InstanceConfig>* tapes[num_tapes] = { &tape0 };
 	Head<InstanceConfig>* heads[num_heads] = { &head0 };
+	// Tape<InstanceConfig> tapes[num_tapes] = { tape0 };
+	// Head<InstanceConfig> heads[num_heads] = { head0 };
 
 	Memory<InstanceConfig> memory(tapes, heads);
 
@@ -157,36 +158,28 @@ int main()
 
 	Utm<InstanceConfig> utm(program, memory);
 
-	utm.run();
+	// utm.run();
 
-	Benchmark benchmark;
-	uint64_t size_bytes = benchmark.test_size(utm);
-	std::cout << "kb: " << size_bytes / 1024.0 << "\n";
-	std::cout << "exit code: " << exit_code_str(utm.exit_code()) << "\n";
-	std::cout << "cycles: " << std::to_string(utm.cycles_elapsed()) << "\n";
+	// Benchmark benchmark;
+	// uint64_t size_bytes = benchmark.test_size(utm);
+	// std::cout << "kb: " << size_bytes / 1024.0 << "\n";
+	// std::cout << "exit code: " << ExitCodeBuilder::to_str(utm.exit_code()) << "\n";
+	// std::cout << "cycles: " << std::to_string(utm.cycles_elapsed()) << "\n";
+	// std::cout << "tape: " << tape0.to_str() << "\n";
 
-	std::cout << "tape: " << tape0.to_str() << "\n";
+	Dataset<InstanceConfig> dataset;
+	dataset.add_entry(memory, memory);
+	dataset.add_entry(memory, memory);
+	dataset.add_entry(memory, memory);
+	std::vector<Stats<InstanceConfig>> stats = Utm<InstanceConfig>::run_dataset(program, dataset);
 
-
-	std::vector<InstanceConfig::Symbol> dataset_input0;
-	dataset_input0.emplace_back(1);
-	dataset_input0.emplace_back(2);
-	dataset_input0.emplace_back(2);
-	dataset_input0.emplace_back(1);
-	dataset_input0.emplace_back(2);
-	dataset_input0.emplace_back(2);
-	dataset_input0.emplace_back(1);
-
-	std::vector<InstanceConfig::Symbol> dataset_output0;
-	dataset_output0.emplace_back(2);
-	dataset_output0.emplace_back(1);
-	dataset_output0.emplace_back(1);
-
-	synthesis::Dataset<InstanceConfig> dataset;
-	dataset.add_entry(dataset_input0, dataset_output0);
-
-	Tape<InstanceConfig> tape(dataset_input0);
-	std::cout << tape.to_str() << "\n";
+	for (const Stats<InstanceConfig>& curr_stats : stats)
+	{
+		std::cout << "kb: " << curr_stats.size_bytes / 1024.0 << "\n";
+		std::cout << "exit code: " << ExitCodeBuilder::to_str(curr_stats.exit_code) << "\n";
+		std::cout << "cycles: " << std::to_string(curr_stats.cycles_elapsed) << "\n";
+		std::cout << "memory: " << curr_stats.memory.to_str() << "\n";
+	}
 
 	return 0;
 }

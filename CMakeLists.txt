@@ -27,7 +27,7 @@ set_target_properties(${LIB} PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories(${LIB} PUBLIC ${INCLUDE_DIR})
 
-target_compile_definitions(${LIB} PRIVATE $<$<CONFIG:Debug>:DEBUG>)
+target_compile_definitions(${LIB} PUBLIC $<$<CONFIG:Debug>:DEBUG>)
 
 add_executable(${BIN} ${MAIN})
 target_link_libraries(${BIN} PUBLIC ${LIB})

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "utm/tape.hpp"
+#include "utm/memory.hpp"
 
 
 namespace turing_learning::utm::synthesis
@@ -10,29 +10,27 @@ namespace turing_learning::utm::synthesis
 	class Dataset
 	{
 	private:
-		using Symbol = typename Config::Symbol;
-
-		std::vector<Tape<Config>> inputs_;
-		std::vector<Tape<Config>> outputs_;
+		std::vector<Memory<Config>> inputs_;
+		std::vector<Memory<Config>> outputs_;
 
 	public:
-		void add_entry(const std::vector<Symbol>& entry_input, const std::vector<Symbol>& entry_output)
+		constexpr void add_entry(Memory<Config> entry_input, Memory<Config> entry_output)
 		{
-			inputs_.emplace_back(Tape<Config>(entry_input));
-			outputs_.emplace_back(Tape<Config>(entry_output));
+			inputs_.emplace_back(std::move(entry_input));
+			outputs_.emplace_back(std::move(entry_output));
 		}
 
-		const Tape<Config>& get_input(uint64_t idx)
+		inline constexpr const Memory<Config>& get_input(uint64_t idx) const
 		{
 			return inputs_[idx];
 		}
 
-		const Tape<Config>& get_output(uint64_t idx)
+		inline constexpr const Memory<Config>& get_output(uint64_t idx) const
 		{
 			return outputs_[idx];
 		}
 
-		uint64_t num_entries()
+		inline constexpr uint64_t size() const
 		{
 			return inputs_.size();
 		}

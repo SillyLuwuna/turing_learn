@@ -25,6 +25,19 @@ namespace turing_learning::utm
 			pos_(pos)
 		{ }
 
+		inline constexpr Head(const Head<Config>& other) :
+			tape_(other.tape_),
+			pos_(other.pos_)
+		{ }
+
+		inline constexpr Head<Config>& operator=(const Head<Config>&& other)
+		{
+			tape_ = other.tape_;
+			pos_ = other.pos_;
+
+			return *this;
+		}
+
 		inline constexpr Head(Tape<Config>& tape) :
 			Head(tape, tape.low())
 		{ }
@@ -68,6 +81,21 @@ namespace turing_learning::utm
 		{
 			return (pos_ == (tape_len - 1));
 		}
+
+		inline constexpr const Tape<Config>& tape() const
+		{
+			return tape_;
+		}
+
+		// inline constexpr void set_tape(Tape<Config>& tape)
+		// {
+		// 	tape_ = tape;
+		// }
+		//
+		// inline constexpr void set_pos(TapeLenType pos)
+		// {
+		// 	pos_ = pos;
+		// }
 
 		std::string to_str() const
 		{

@@ -3,52 +3,21 @@
 #include <cstdint>
 
 #include "benchmark/byte_measurable.hpp"
+#include "utm/exit_code.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
+#include "utm/stats.hpp"
+#include "utm/synthesis/dataset.hpp"
 
 namespace turing_learning::utm
 {
-	enum ExitCode : uint8_t
-	{
-		None,
-		Finished,
-		MemoryCorrupted,
-		UnknownTransition,
-		MaxIterationsReached
-	};
-
-	inline std::string exit_code_str(ExitCode exitcode)
-	{
-		switch (exitcode)
-		{
-			case ExitCode::None:
-				return "None";
-				break;
-			case ExitCode::Finished:
-				return "Finished";
-				break;
-			case ExitCode::MemoryCorrupted:
-				return "MemoryCorrupted";
-				break;
-			case ExitCode::UnknownTransition:
-				return "UnknownTransition";
-				break;
-			case ExitCode::MaxIterationsReached:
-				return "MaxIterationsReached";
-				break;
-			default:
-				return "Unknown";
-				break;
-		}
-	}
-
 	template<typename Config>
 	class Utm : public benchmark::ByteMeasurable
 	{
 	private:
 		static constexpr uint64_t max_iterations_ = Config::max_iterations;
 
-		Program<Config>& program_;
+		const Program<Config>& program_;
 		Memory<Config>& memory_;
 		ExitCode exit_code_;
 		uint64_t cycle_count_;
@@ -56,7 +25,7 @@ namespace turing_learning::utm
 	public:
 		// state 0 is the entry point
 		// state 1 is reserved for final state
-		inline constexpr Utm(Program<Config>& program, Memory<Config>& memory) :
+		inline constexpr Utm(const Program<Config>& program, Memory<Config>& memory) :
 			program_(program),
 			memory_(memory),
 			exit_code_(ExitCode::None),
@@ -121,7 +90,7 @@ namespace turing_learning::utm
 			while ((exit_code_ == ExitCode::None) && (cycle_count_ < max_iterations_))
 			{
 #ifdef DEBUG
-				std::cout << "\n====== step " << step_count << " ======\n";
+				std::cout << "\n====== step " << cycle_count_ << " ======\n";
 #endif
 				step();
 				cycle_count_++;
@@ -131,6 +100,29 @@ namespace turing_learning::utm
 			{
 				exit_code_ = ExitCode::MaxIterationsReached;
 			}
+		}
+
+		static constexpr std::vector<Stats<Config>> run_dataset(const Program<Config>& program, const synthesis::Dataset<Config>& dataset)
+		{
+			std::vector<Stats<Config>> all_stats;
+			all_stats.reserve(dataset.size());
+
+			for (uint64_t i = 0; i < dataset.size(); i++)
+			{
+				Memory<Config> memory(dataset.get_input(i));
+				Utm<Config> utm(program, memory);
+				utm.run();
+
+				Stats stats {
+					.cycles_elapsed = utm.cycles_elapsed(),
+					.size_bytes = utm.num_bytes(),
+					.exit_code = utm.exit_code(),
+					.memory = memory
+				};
+				all_stats.emplace_back(stats);
+			}
+
+			return all_stats;
 		}
 
 		inline constexpr ExitCode exit_code() const

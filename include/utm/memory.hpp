@@ -4,6 +4,7 @@
 #include "utm/head.hpp"
 #include "utm/state_transition.hpp"
 #include "utm/tape_state.hpp"
+#include <unordered_set>
 
 namespace turing_learning::utm
 {
@@ -21,21 +22,18 @@ namespace turing_learning::utm
 		static constexpr NumTapesType num_tapes = Config::num_tapes;
 		static constexpr NumHeadsType num_heads = Config::num_heads;
 
-		Tape<Config>* (&tapes_)[num_tapes];
-		NumTapesType registered_tapes_;
-
-		Head<Config>* (&heads_)[num_heads];
-		NumTapesType registered_heads_;
+		Tape<Config> tapes_[num_tapes];
+		Head<Config> heads_[num_heads];
+		NumTapesType head_target_tape_idx_[num_heads];
 
 		State state_;
-
 		bool corrupted_;
 
 		inline constexpr void write_heads(const StateTransition<Config>& transition)
 		{
 			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
-				heads_[i]->write(transition.head_writes[i]);
+				heads_[i].write(transition.head_writes[i]);
 			}
 		}
 
@@ -43,7 +41,7 @@ namespace turing_learning::utm
 		{
 			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
-				move_head(*heads_[i], transition.get_head_operation(i));
+				move_head(heads_[i], transition.get_head_operation(i));
 			}
 		}
 
@@ -73,28 +71,64 @@ namespace turing_learning::utm
 			state_ = transition.end_state;
 		}
 
+		inline constexpr Head<Config> gen_local_head(std::size_t idx, const Head<Config>& head, Tape<Config>* (&tapes)[num_tapes])
+		{
+			for (NumTapesType tape_idx = 0; tape_idx < num_tapes; tape_idx++)
+			{
+				if (&head.tape() == tapes[tape_idx])
+				{
+					head_target_tape_idx_[idx] = tape_idx;
+					return Head<Config>(tapes_[tape_idx], head.pos());
+				}
+			}
+
+			throw std::runtime_error("No corresponding tape for head");
+		}
+
+		inline constexpr Head<Config> gen_local_head(std::size_t idx, const NumTapesType (&head_target_tape_idx)[num_heads], TapeLenType pos)
+		{
+			return Head<Config>(tapes_[head_target_tape_idx[idx]], pos);
+		}
+
+		template <std::size_t... TapeIs, std::size_t... HeadIs>
+		inline constexpr Memory(
+			Tape<Config>* (&tapes)[num_tapes],
+			Head<Config>* (&heads)[num_heads],
+			std::index_sequence<TapeIs...>,
+			std::index_sequence<HeadIs...>) :
+				tapes_{ *tapes[TapeIs]... },
+				heads_{ gen_local_head(HeadIs, *heads[HeadIs], tapes)... },
+				state_(0),
+				corrupted_(false)
+		{ }
+
+		template <std::size_t... TapeIs, std::size_t... HeadIs>
+		inline constexpr Memory(
+			const Tape<Config> (&tapes)[num_tapes],
+			const NumTapesType (&head_target_tape_idx)[num_heads],
+			const Head<Config> (&heads)[num_heads],
+			State state,
+			bool corrupted,
+			std::index_sequence<TapeIs...>,
+			std::index_sequence<HeadIs...>) :
+				tapes_{ tapes[TapeIs]... },
+				heads_{ gen_local_head(HeadIs, head_target_tape_idx, heads[HeadIs].pos())... },
+				state_(state),
+				corrupted_(corrupted)
+		{ }
+
 	public:
 		inline constexpr Memory(Tape<Config>* (&tapes)[num_tapes], Head<Config>* (&heads)[num_heads]) :
-			tapes_(tapes),
-			registered_tapes_(num_tapes),
-			heads_(heads),
-			registered_heads_(num_heads),
-			state_(0),
-			corrupted_(false)
+			Memory(tapes, heads, std::make_index_sequence<num_tapes>{}, std::make_index_sequence<num_heads>{})
+		{ }
+
+		inline constexpr Memory(const Memory& other) :
+			Memory(other.tapes_, other.head_target_tape_idx_, other.heads_, other.state_, other.corrupted_, std::make_index_sequence<num_tapes>{}, std::make_index_sequence<num_heads>{})
 		{
+			std::memcpy(head_target_tape_idx_, other.head_target_tape_idx_, num_heads * sizeof(NumTapesType));
 		}
 
-		inline constexpr void register_tape(Tape<Config>&& tape)
-		{
-			tapes_[registered_tapes_++] = std::move(tape);
-		}
-
-		inline constexpr void register_head(Head<Config>&& head)
-		{
-			heads_[registered_heads_++] = std::move(head);
-		}
-
-		inline constexpr TapeState<Config> get_tape_state()
+		inline constexpr TapeState<Config> get_tape_state() const
 		{
 			TapeState<Config> tape_state;
 			std::memset(tape_state.head_reads, 0, sizeof(tape_state.head_reads));
@@ -102,7 +136,7 @@ namespace turing_learning::utm
 			tape_state.state = state_;
 			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
-				tape_state.head_reads[i] = heads_[i]->read();
+				tape_state.head_reads[i] = heads_[i].read();
 			}
 
 			return tape_state;
@@ -115,7 +149,7 @@ namespace turing_learning::utm
 			change_state(transition);
 		}
 
-		inline constexpr bool is_corrupted()
+		inline constexpr bool is_corrupted() const
 		{
 			return corrupted_;
 		}
@@ -124,7 +158,7 @@ namespace turing_learning::utm
 		{
 			std::string str;
 
-			for (NumTapesType i = 0; i < registered_tapes_; i++)
+			for (NumTapesType i = 0; i < num_tapes; i++)
 			{
 				if (i > 0)
 				{
@@ -133,16 +167,16 @@ namespace turing_learning::utm
 				str += "tape";
 				str += std::to_string(i);
 				str += ": ";
-				str += (*tapes_[i]).to_str();
+				str += tapes_[i].to_str();
 			}
 
-			for (NumHeadsType i = 0; i < registered_heads_; i++)
+			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
 				str += "\n";
 				str += "head";
 				str += std::to_string(i);
 				str += ": ";
-				str += (*heads_[i]).to_str();
+				str += heads_[i].to_str();
 			}
 
 			return str;
@@ -150,10 +184,19 @@ namespace turing_learning::utm
 
 		uint64_t num_bytes() const override
 		{
-			// uint64_t single_tape_bytes = sizeof(Tape<Config>) + (Config::symbol_bits * tape_len);
-			uint64_t tape_bytes = registered_tapes_ * tapes_[0]->num_bytes();
-			uint64_t head_bytes = registered_heads_ * sizeof(Head<Config>);
+			uint64_t tape_bytes = num_tapes * tapes_[0].num_bytes();
+			uint64_t head_bytes = num_heads * sizeof(Head<Config>);
 			return sizeof(*this) + tape_bytes + head_bytes;
 		}
+
+		// const Tape<Config>& get_tape(uint64_t idx)
+		// {
+		// 	return tapes_[idx];
+		// }
+		//
+		// const Tape<Config>& get_head(uint64_t idx)
+		// {
+		// 	return heads_[idx];
+		// }
 	};
 }
