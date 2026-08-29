@@ -7,7 +7,7 @@
 namespace turing_learning::utm
 {
 	template<typename Config>
-	struct Stats
+	struct ExecutionResults
 	{
 		uint64_t cycles_elapsed;
 		uint64_t size_bytes;

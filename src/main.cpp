@@ -6,6 +6,7 @@
 #include "utm/program.hpp"
 #include "utm/state_transition.hpp"
 #include "utm/synthesis/dataset.hpp"
+#include "utm/synthesis/sim_annealing.hpp"
 #include "utm/utm.hpp"
 #include "containers/bit_array.hpp"
 #include "containers/contiguous_bits.hpp"
@@ -167,19 +168,54 @@ int main()
 	// std::cout << "cycles: " << std::to_string(utm.cycles_elapsed()) << "\n";
 	// std::cout << "tape: " << tape0.to_str() << "\n";
 
-	Dataset<InstanceConfig> dataset;
-	dataset.add_entry(memory, memory);
-	dataset.add_entry(memory, memory);
-	dataset.add_entry(memory, memory);
-	std::vector<Stats<InstanceConfig>> stats = Utm<InstanceConfig>::run_dataset(program, dataset);
+	Tape<InstanceConfig> test_tape = Tape<InstanceConfig>();
+	test_tape.write(0, 2);
+	test_tape.write(1, 1);
+	test_tape.write(2, 1);
+	test_tape.write(3, 2);
+	test_tape.write(4, 2);
+	test_tape.write(5, 2);
+	test_tape.write(6, 1);
+	test_tape.write(7, 2);
+	test_tape.write(8, 1);
+	test_tape.write(9, 2);
+	test_tape.write(10, 2);
+	test_tape.write(11, 2);
+	test_tape.write(12, 2);
 
-	for (const Stats<InstanceConfig>& curr_stats : stats)
+	Head<InstanceConfig> test_head = Head<InstanceConfig>(test_tape);
+	Tape<InstanceConfig>* test_tapes[num_tapes] = { &test_tape };
+	Head<InstanceConfig>* test_heads[num_heads] = { &test_head };
+	Memory<InstanceConfig> test_memory(test_tapes, test_heads);
+
+	Dataset<InstanceConfig> dataset;
+	dataset.add_entry(memory, test_memory);
+	dataset.add_entry(memory, test_memory);
+	dataset.add_entry(memory, test_memory);
+
+	std::vector<ExecutionResults<InstanceConfig>> results = Utm<InstanceConfig>::run_dataset(program, dataset);
+
+	for (const ExecutionResults<InstanceConfig>& curr_results : results)
 	{
-		std::cout << "kb: " << curr_stats.size_bytes / 1024.0 << "\n";
-		std::cout << "exit code: " << ExitCodeBuilder::to_str(curr_stats.exit_code) << "\n";
-		std::cout << "cycles: " << std::to_string(curr_stats.cycles_elapsed) << "\n";
-		std::cout << "memory: " << curr_stats.memory.to_str() << "\n";
+		std::cout << "kb: " << curr_results.size_bytes / 1024.0 << "\n";
+		std::cout << "exit code: " << ExitCodeBuilder::to_str(curr_results.exit_code) << "\n";
+		std::cout << "cycles: " << std::to_string(curr_results.cycles_elapsed) << "\n";
+		std::cout << "memory: " << curr_results.memory.to_str() << "\n";
 	}
+
+
+
+	std::cout << "outcome: " << std::to_string(results[0].memory.cmp(test_memory)) << "\n";
+	std::cout << "outcome: " << std::to_string(results[0].memory.cmp(results[0].memory)) << "\n";
+	std::cout << "outcome: " << std::to_string(results[0].memory.cmp(results[1].memory)) << "\n";
+
+	std::cout << "is equivalent: " << std::to_string(results[0].memory.is_equivalent(test_memory)) << "\n";
+	std::cout << "is equivalent: " << std::to_string(results[0].memory.is_equivalent(results[0].memory)) << "\n";
+	std::cout << "is equivalent: " << std::to_string(results[0].memory.is_equivalent(results[1].memory)) << "\n";
+
+	SimulatedAnnealing<InstanceConfig> sim_ann;
+
+	std::cout << "fitness: " << std::to_string(sim_ann.fitness(results, dataset)) << "\n";
 
 	return 0;
 }

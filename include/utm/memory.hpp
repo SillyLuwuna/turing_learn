@@ -189,14 +189,29 @@ namespace turing_learning::utm
 			return sizeof(*this) + tape_bytes + head_bytes;
 		}
 
-		// const Tape<Config>& get_tape(uint64_t idx)
-		// {
-		// 	return tapes_[idx];
-		// }
-		//
-		// const Tape<Config>& get_head(uint64_t idx)
-		// {
-		// 	return heads_[idx];
-		// }
+		inline constexpr bool is_equivalent(const Memory<Config>& other) const
+		{
+			for (TapeLenType i = 0; i < num_tapes; i++)
+			{
+				if (!tapes_[i].is_equivalent(other.tapes_[i]))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		inline constexpr uint64_t cmp(const Memory<Config>& other) const
+		{
+			uint64_t diff = 0;
+
+			for (TapeLenType i = 0; i < num_tapes; i++)
+			{
+				diff += tapes_[i].cmp(other.tapes_[i]);
+			}
+
+			return diff;
+		}
 	};
 }

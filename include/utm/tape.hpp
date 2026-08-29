@@ -120,7 +120,7 @@ namespace turing_learning::utm
 			}
 		}
 
-		inline constexpr uint64_t size()
+		inline constexpr uint64_t size() const
 		{
 			return high_ - low_ + 1;
 		}
@@ -154,23 +154,47 @@ namespace turing_learning::utm
 			// return tape_[idx];
 		}
 
-		inline constexpr bool is_equivalent(const Tape<Config>& other)
+		inline constexpr bool is_equivalent(const Tape<Config>& other) const
 		{
 			if (this->size() != other.size()) return false;
 
 			// TODO make bit_array cmp for different starts
-			for (uint64_t this_start = low_; this_start <= high_; this_start++)
+			for (uint64_t i = 0; i < this->size(); i++)
 			{
-
+				if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))
+				{
+					return false;
+				}
 			}
+
+			return true;
 		}
 
-		inline constexpr TapeLenType low()
+		inline constexpr uint64_t cmp(const Tape<Config>& other) const
+		{
+			uint64_t max_len = std::max(this->size(), other.size());
+			uint64_t min_len = std::min(this->size(), other.size());
+
+			uint64_t diff = max_len - min_len;
+
+			// TODO make bit_array cmp for different starts
+			for (uint64_t i = 0; i < min_len; i++)
+			{
+				if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))
+				{
+					diff++;
+				}
+			}
+
+			return diff;
+		}
+
+		inline constexpr TapeLenType low() const
 		{
 			return low_;
 		}
 
-		inline constexpr TapeLenType high()
+		inline constexpr TapeLenType high() const
 		{
 			return high_;
 		}

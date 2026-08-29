@@ -87,16 +87,6 @@ namespace turing_learning::utm
 			return tape_;
 		}
 
-		// inline constexpr void set_tape(Tape<Config>& tape)
-		// {
-		// 	tape_ = tape;
-		// }
-		//
-		// inline constexpr void set_pos(TapeLenType pos)
-		// {
-		// 	pos_ = pos;
-		// }
-
 		std::string to_str() const
 		{
 			std::string str;

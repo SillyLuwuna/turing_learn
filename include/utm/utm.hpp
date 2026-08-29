@@ -6,7 +6,7 @@
 #include "utm/exit_code.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
-#include "utm/stats.hpp"
+#include "utm/execution_results.hpp"
 #include "utm/synthesis/dataset.hpp"
 
 namespace turing_learning::utm
@@ -102,9 +102,9 @@ namespace turing_learning::utm
 			}
 		}
 
-		static constexpr std::vector<Stats<Config>> run_dataset(const Program<Config>& program, const synthesis::Dataset<Config>& dataset)
+		static constexpr std::vector<ExecutionResults<Config>> run_dataset(const Program<Config>& program, const synthesis::Dataset<Config>& dataset)
 		{
-			std::vector<Stats<Config>> all_stats;
+			std::vector<ExecutionResults<Config>> all_stats;
 			all_stats.reserve(dataset.size());
 
 			for (uint64_t i = 0; i < dataset.size(); i++)
@@ -113,7 +113,7 @@ namespace turing_learning::utm
 				Utm<Config> utm(program, memory);
 				utm.run();
 
-				Stats stats {
+				ExecutionResults stats {
 					.cycles_elapsed = utm.cycles_elapsed(),
 					.size_bytes = utm.num_bytes(),
 					.exit_code = utm.exit_code(),
