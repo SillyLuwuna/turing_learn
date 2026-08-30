@@ -37,6 +37,7 @@ target_compile_options(${BIN} PRIVATE
 	-Wextra
 	-Wpedantic
 	-O3
+	-march=native
 	#-fno-inline
 	#-fno-omit-frame-pointer
 	#-g

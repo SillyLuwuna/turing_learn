@@ -27,6 +27,20 @@ namespace turing_learning::utm
 			transitions_.erase(transition);
 		}
 
+		inline constexpr void overwrite_transition(StateTransition<Config>&& transition)
+		{
+			auto node = transitions_.extract(transition);
+			if (!node.empty())
+			{
+				node.value() = std::move(transition);
+				transitions_.insert(std::move(node));
+			}
+			else
+			{
+				transitions_.emplace(std::move(transition));
+			}
+		}
+
 		// efficient but dangerous. May become invalid after an insert/remove
 		inline const StateTransition<Config>* get_transition_ptr(const TapeState<Config>& tape_state) const
 		{

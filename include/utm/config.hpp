@@ -7,6 +7,7 @@
 namespace turing_learning::utm
 {
 	template<uint64_t NumHeads, uint64_t NumTapes, uint64_t TapeLen, uint64_t NumSymbols, uint64_t NumStates, uint64_t MaxIterations>
+		requires(NumHeads > 0 && NumTapes > 0 && TapeLen > 0 && NumSymbols > 0 && NumStates >= 2 && MaxIterations > 0)
 	struct Config
 	{
 		using NumHeadsType = typename SizeSelector<NumHeads>::type;

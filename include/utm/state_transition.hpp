@@ -12,6 +12,7 @@ namespace turing_learning::utm
 {
 	using namespace turing_learning::containers;
 
+	// TODO could be made to exploit SIMD
 	template<typename Config>
 	struct StateTransition
 	{
@@ -23,7 +24,7 @@ namespace turing_learning::utm
 		static constexpr NumTapesType num_tapes = Config::num_tapes;
 		static constexpr NumHeadsType num_heads = Config::num_heads;
 
-		TapeState<Config> tape_state;
+		TapeState<Config> trigger_state;
 		Symbol head_writes[num_heads];
 		State end_state;
 		ContiguousBits<uint8_t, uint8_t, 2, num_tapes> head_operations;
@@ -43,7 +44,7 @@ namespace turing_learning::utm
 			std::string str;
 
 			str += "state[";
-			str += std::to_string(tape_state.state);
+			str += std::to_string(trigger_state.state);
 			str += "->";
 			str += std::to_string(end_state);
 			str += "]";
@@ -53,7 +54,7 @@ namespace turing_learning::utm
 				str += " head";
 				str += std::to_string(i);
 				str += "(";
-				str += SymbolBuilder<Config>::to_str(tape_state.head_reads[i]);
+				str += SymbolBuilder<Config>::to_str(trigger_state.head_reads[i]);
 				str += "->";
 				str += SymbolBuilder<Config>::to_str(head_writes[i]);
 				str += ", ";
@@ -94,7 +95,7 @@ namespace turing_learning::utm
 
 		inline constexpr StateTransitionBuilder<Config>& from_state(State start_state)
 		{
-			state_transition_.tape_state.state = start_state;
+			state_transition_.trigger_state.state = start_state;
 			return *this;
 		}
 
@@ -106,7 +107,7 @@ namespace turing_learning::utm
 
 		inline constexpr StateTransitionBuilder<Config>& on_head_read(NumTapesType tape, Symbol symbol)
 		{
-			state_transition_.tape_state.head_reads[tape] = symbol;
+			state_transition_.trigger_state.head_reads[tape] = symbol;
 			return *this;
 		}
 
@@ -134,7 +135,7 @@ namespace turing_learning::utm
 
 		std::size_t operator()(const StateTransition<Config>& transition) const
 		{
-			return transition.tape_state.hash();
+			return transition.trigger_state.hash();
 		}
 
 		std::size_t operator()(const TapeState<Config>& tape_state) const
@@ -150,17 +151,17 @@ namespace turing_learning::utm
 
 		bool operator()(const StateTransition<Config>& lhs, const StateTransition<Config>& rhs) const
 		{
-			return lhs.tape_state == rhs.tape_state;
+			return lhs.trigger_state == rhs.trigger_state;
 		}
 
 		bool operator()(const StateTransition<Config>& lhs, const TapeState<Config>& rhs) const
 		{
-			return lhs.tape_state == rhs;
+			return lhs.trigger_state == rhs;
 		}
 
 		bool operator()(const TapeState<Config>& lhs, const StateTransition<Config>& rhs) const
 		{
-			return lhs == rhs.tape_state;
+			return lhs == rhs.trigger_state;
 		}
 
 		bool operator()(const TapeState<Config>& lhs, const TapeState<Config>& rhs) const
