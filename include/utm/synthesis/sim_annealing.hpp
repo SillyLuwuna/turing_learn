@@ -6,6 +6,7 @@
 #include "utm/program.hpp"
 #include "utm/synthesis/dataset.hpp"
 #include "random/xoshiro256p.hpp"
+#include "utm/utm.hpp"
 
 namespace turing_learning::utm::synthesis
 {
@@ -29,48 +30,57 @@ namespace turing_learning::utm::synthesis
 		random::RandomEngine& rng_;
 		random::RandomStream rng_stream_;
 
-		uint64_t num_symbols_;
-		uint64_t num_heads_;
-		uint64_t num_states_;
-		uint64_t num_head_operations_;
+		const uint64_t num_symbols_;
+		const uint64_t num_heads_;
+		const uint64_t num_states_;
+
 
 	public:
 		SimulatedAnnealing(
 			random::RandomEngine& rng_engine,
 			uint64_t num_symbols,
 			uint64_t num_heads,
-			uint64_t num_states,
-			uint64_t num_head_operations
+			uint64_t num_states
 		) :
 			rng_(rng_engine),
 			rng_stream_(rng_),
 			num_symbols_(num_symbols),
 			num_heads_(num_heads),
-			num_states_(num_states),
-			num_head_operations_(num_head_operations)
+			num_states_(num_states)
 		{ }
 
-		inline constexpr float fitness(const Memory<Config>& output, const Memory<Config>& expected)
+		inline constexpr float energy(const Memory<Config>& output, const Memory<Config>& expected)
 		{
-			return 1.0f / (1.0f + output.cmp(expected));
+			// return 1.0f / (1.0f + output.cmp(expected));
+			return output.cmp(expected);
 		}
 
-		inline constexpr float fitness(const std::vector<ExecutionResults<Config>>& results, const Dataset<Config>& dataset)
+		inline constexpr float energy(const std::vector<ExecutionResults<Config>>& results, const Dataset<Config>& dataset)
 		{
-			float curr_fitness = 0;
+			float curr_energy = 0;
 
 			for (uint64_t i = 0; i < results.size(); i++)
 			{
-				curr_fitness += fitness(results[i].memory, dataset.get_output(i));
+				curr_energy += energy(results[i].memory, dataset.get_output(i));
 			}
 
-			return curr_fitness;
+			return curr_energy;
+		}
+
+		inline constexpr float temperature_schedule(uint64_t curr_iteration, uint64_t max_iterations)
+		{
+			return 1.0f - ((float)(curr_iteration + 1) / (float)max_iterations);
+		}
+
+		Program<Config> init_program()
+		{
+			return Program<Config>();
 		}
 
 		// TODO make changes destructive for simulated annealing
 		// TODO use next64_med/low/high depending on generator
 		// instead of copying. More efficient
-		inline constexpr Program<Config> neighbour(const Program<Config>& origin)
+		Program<Config> neighbour(const Program<Config>& origin)
 		{
 			// deleting transitions is fundamentally the same of having random unused transitions
 			Program<Config> result = origin;
@@ -82,17 +92,54 @@ namespace turing_learning::utm::synthesis
 			{
 				transition.trigger_state.head_reads[i] = rng_stream_.next64(num_symbols_);
 				transition.head_writes[i] = rng_stream_.next64(num_symbols_);
-				transition.head_operations.rewrite_at(rng_stream_.next64(num_head_operations_), i);
+				transition.head_operations.rewrite_at(rng_stream_.next64(HeadOperation::NUM_OPERATIONS), i);
 			}
 
-			result.overwrite_transition(transition);
+			result.overwrite_transition(std::move(transition));
 
 			return origin;
 		}
 
-		void run()
+		inline constexpr float acceptance_probability(float solution_energy, float candidate_energy, float temperature)
 		{
-			// save best solution so far
+			return candidate_energy < solution_energy ? 1.0 : std::exp(-(candidate_energy - solution_energy) / temperature);
+		}
+
+		// TODO return statistics and other useful things
+		Program<Config> run(uint64_t max_iterations, const Dataset<Config>& dataset)
+		{
+			// TODO save best solution so far
+			float best_energy = std::numeric_limits<float>::max();
+
+			Program<Config> solution = init_program();
+			float solution_energy = energy(Utm<Config>::run_dataset(solution, dataset), dataset);
+
+			for (uint64_t i = 0; i < max_iterations; i++)
+			{
+				float temperature = temperature_schedule(i, max_iterations);
+				// std::cout << std::to_string(temperature) << "\n";
+				Program<Config> candidate = neighbour(solution);
+				float curr_energy = energy(Utm<Config>::run_dataset(candidate, dataset), dataset);
+				if (acceptance_probability(solution_energy, curr_energy, temperature) >= rng_.nextf32())
+				{
+					solution = std::move(candidate); // WARN assignment operation
+					solution_energy = curr_energy;
+
+					if (curr_energy < best_energy)
+					{
+						best_energy = curr_energy;
+						std::cout << std::to_string(best_energy) << "\n";
+					}
+
+					if (solution_energy == 0.0f) // FIXME
+					{
+						std::cout << "found solution\n";
+						break;
+					}
+				}
+			}
+
+			return solution;
 		}
 	};
 }

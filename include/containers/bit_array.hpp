@@ -174,6 +174,7 @@ namespace turing_learning::containers
 		constexpr BitArray& operator=(BitArray&& other)
 		{
 			memory::copy<Container, chunk_size_>(this->bit_chunks_, other.bit_chunks_);
+			return *this;
 		}
 
 		inline constexpr void increment(uint64_t chunk_start)

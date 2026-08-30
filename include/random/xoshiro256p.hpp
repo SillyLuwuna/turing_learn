@@ -57,5 +57,20 @@ namespace turing_learning::random
 
 			return result;
 		}
+
+		inline constexpr uint32_t next32() override
+		{
+			return (uint32_t)(next64() >> 32);
+		}
+
+		inline constexpr double nextf64() override
+		{
+			return (double)next64() / (double)std::numeric_limits<uint64_t>::max();
+		}
+
+		inline constexpr float nextf32() override
+		{
+			return (float)(next64() >> 32) / (float)std::numeric_limits<uint32_t>::max();
+		}
 	};
 }

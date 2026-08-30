@@ -9,7 +9,8 @@ namespace turing_learning::utm
 	{
 		Left,
 		Right,
-		NOP
+		NOP,
+		NUM_OPERATIONS
 	};
 
 	struct HeadOperationConversion
