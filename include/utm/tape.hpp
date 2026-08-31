@@ -47,9 +47,17 @@ namespace turing_learning::utm
 		{
 			if (symbol == 0)
 			{
+				if ((low <= low_) && (high >= high_))
+				{
+					high_ = 0;
+					low_ = 1;
+
+					return true;
+				}
+
 				if ((low <= low_) && (high >= low_))
 				{
-					low_ = high + 1;
+					low_ = high + 1; // goes one above the max index
 				}
 				else if ((high >= high_) && (low <= high_))
 				{

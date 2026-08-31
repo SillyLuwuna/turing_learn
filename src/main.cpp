@@ -8,6 +8,7 @@
 #include "utm/state_transition.hpp"
 #include "utm/synthesis/dataset.hpp"
 #include "utm/synthesis/sim_annealing.hpp"
+#include "utm/synthesis/datasets/count_dataset.hpp"
 #include "utm/utm.hpp"
 #include "containers/bit_array.hpp"
 #include "containers/contiguous_bits.hpp"
@@ -16,221 +17,76 @@ using namespace turing_learning;
 using namespace turing_learning::containers;
 using namespace turing_learning::utm;
 using namespace turing_learning::utm::synthesis;
+using namespace turing_learning::utm::synthesis::datasets;
 using namespace turing_learning::benchmark;
 using namespace turing_learning::random;
 
 
 int main()
 {
-	const uint64_t seed = 137;
+	const uint64_t seed = 136;
 	std::cout << "seed: " << std::to_string(seed) << "\n";
 
 	const uint64_t num_symbols_effective = 3;
+	const uint64_t max_dataset_entry_len = 100;
+	const uint64_t train_dataset_len = 10;
+	const uint64_t test_dataset_len = 10;
+	// const uint64_t simulated_annealing_iterations = 2000000;
+	const uint64_t simulated_annealing_iterations = 20000000;
 
 	// treat as maximums
 	const uint64_t num_heads = 1;
 	const uint64_t num_tapes = 1;
-	const uint64_t tape_len = 10001;
+	// const uint64_t tape_len = 10001;
+	const uint64_t tape_len = 101;
 	const uint64_t num_symbols = 256; // 256 for performance
 	const uint64_t num_states = 6;
 	// const uint64_t max_iterations = 10000000000;
-	const uint64_t max_iterations = 60000000;
+	// const uint64_t max_iterations = 60000000;
+	const uint64_t max_iterations = 6000;
 	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states, max_iterations>;
 
 	Xoshiro256p rng(seed);
 
-	std::srand(seed);
-	Tape<InstanceConfig> tape0 = Tape<InstanceConfig>();
-	for (uint64_t i = 9999; i >= 32; i--)
-	{
-		uint64_t random_value = (std::rand() % 2) + 1;
-		tape0.write(i, random_value);
-	}
-
-	Head<InstanceConfig> head0 = Head<InstanceConfig>(tape0);
-
-	Tape<InstanceConfig>* tapes[num_tapes] = { &tape0 };
-	Head<InstanceConfig>* heads[num_heads] = { &head0 };
-
-	Memory<InstanceConfig> memory(tapes, heads);
-
-	Program<InstanceConfig> program;
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(0)
-		.on_head_read(1)
-		.write(1)
-		.move_head(HeadOperation::Right)
-		.go_to_state(0)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(0)
-		.on_head_read(2)
-		.write(1)
-		.move_head(HeadOperation::Left)
-		.go_to_state(2)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(0)
-		.on_head_read(0)
-		.write(0)
-		.move_head(HeadOperation::Left)
-		.go_to_state(5)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(2)
-		.on_head_read(1)
-		.write(1)
-		.move_head(HeadOperation::Left)
-		.go_to_state(2)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(2)
-		.on_head_read(0)
-		.write(0)
-		.move_head(HeadOperation::Left)
-		.go_to_state(3)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(3)
-		.on_head_read(2)
-		.write(1)
-		.move_head(HeadOperation::Left)
-		.go_to_state(3)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(3)
-		.on_head_read(0)
-		.write(2)
-		.move_head(HeadOperation::Right)
-		.go_to_state(4)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(3)
-		.on_head_read(1)
-		.write(2)
-		.move_head(HeadOperation::Right)
-		.go_to_state(4)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(4)
-		.on_head_read(1)
-		.write(1)
-		.move_head(HeadOperation::Right)
-		.go_to_state(4)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(4)
-		.on_head_read(0)
-		.write(0)
-		.move_head(HeadOperation::Right)
-		.go_to_state(0)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(5)
-		.on_head_read(1)
-		.write(0)
-		.move_head(HeadOperation::Left)
-		.go_to_state(5)
-		.build()
-	);
-
-	program.add_transition(StateTransitionBuilder<InstanceConfig>()
-		.from_state(5)
-		.on_head_read(0)
-		.write(0)
-		.move_head(HeadOperation::Left)
-		.go_to_state(1)
-		.build()
-	);
-
-	Utm<InstanceConfig> utm(program, memory);
-
-	// utm.run();
-
-	// Benchmark benchmark;
-	// uint64_t size_bytes = benchmark.test_size(utm);
-	// std::cout << "kb: " << size_bytes / 1024.0 << "\n";
-	// std::cout << "exit code: " << ExitCodeBuilder::to_str(utm.exit_code()) << "\n";
-	// std::cout << "cycles: " << std::to_string(utm.cycles_elapsed()) << "\n";
-	// std::cout << "tape: " << tape0.to_str() << "\n";
-
-	Tape<InstanceConfig> test_tape = Tape<InstanceConfig>();
-	test_tape.write(0, 2);
-	test_tape.write(1, 1);
-	test_tape.write(2, 1);
-	test_tape.write(3, 2);
-	test_tape.write(4, 2);
-	test_tape.write(5, 2);
-	test_tape.write(6, 1);
-	test_tape.write(7, 2);
-	test_tape.write(8, 1);
-	test_tape.write(9, 2);
-	test_tape.write(10, 2);
-	test_tape.write(11, 2);
-	test_tape.write(12, 2);
-
-	Head<InstanceConfig> test_head = Head<InstanceConfig>(test_tape);
-	Tape<InstanceConfig>* test_tapes[num_tapes] = { &test_tape };
-	Head<InstanceConfig>* test_heads[num_heads] = { &test_head };
-	Memory<InstanceConfig> test_memory(test_tapes, test_heads);
-
-	Dataset<InstanceConfig> dataset;
-	dataset.add_entry(memory, test_memory);
-	// dataset.add_entry(memory, test_memory);
-	// dataset.add_entry(memory, test_memory);
-	//
-	// std::vector<ExecutionResults<InstanceConfig>> results = Utm<InstanceConfig>::run_dataset(program, dataset);
-	//
-	// for (const ExecutionResults<InstanceConfig>& curr_results : results)
-	// {
-	// 	std::cout << "kb: " << curr_results.size_bytes / 1024.0 << "\n";
-	// 	std::cout << "exit code: " << ExitCodeBuilder::to_str(curr_results.exit_code) << "\n";
-	// 	std::cout << "cycles: " << std::to_string(curr_results.cycles_elapsed) << "\n";
-	// 	std::cout << "memory: " << curr_results.memory.to_str() << "\n";
-	// }
-	//
-	//
-	//
-	// std::cout << "outcome: " << std::to_string(results[0].memory.cmp(test_memory)) << "\n";
-	// std::cout << "outcome: " << std::to_string(results[0].memory.cmp(results[0].memory)) << "\n";
-	// std::cout << "outcome: " << std::to_string(results[0].memory.cmp(results[1].memory)) << "\n";
-	//
-	// std::cout << "is equivalent: " << std::to_string(results[0].memory.is_equivalent(test_memory)) << "\n";
-	// std::cout << "is equivalent: " << std::to_string(results[0].memory.is_equivalent(results[0].memory)) << "\n";
-	// std::cout << "is equivalent: " << std::to_string(results[0].memory.is_equivalent(results[1].memory)) << "\n";
-
-	// RandomStream rng_stream(rng);
-	//
-	// for (uint64_t i = 0; i < 1000; i++)
-	// {
-	// 	// std::cout << std::to_string(rng_stream.next64_high(2)) << " ";
-	// 	std::cout << std::to_string(rng.nextf32()) << "\n";
-	// }
+	// TODO way to calculate required max_iterations automatically
+	CountDataset<InstanceConfig> count_dataset(rng, max_dataset_entry_len);
+	Dataset<InstanceConfig> train_dataset = count_dataset.gen_dataset(train_dataset_len);
+	Dataset<InstanceConfig> test_dataset = count_dataset.gen_dataset(test_dataset_len);
 
 	SimulatedAnnealing<InstanceConfig> sim_ann(rng, num_symbols_effective, num_heads, num_states);
 
-	sim_ann.run(1000000, dataset);
+	Program<InstanceConfig> solution = sim_ann.run(simulated_annealing_iterations, train_dataset);
+	std::cout << "program:\n" << solution.to_str();
+
+	std::vector<ExecutionResults<InstanceConfig>> results = Utm<InstanceConfig>::run_dataset(solution, train_dataset);
+	for (uint64_t i = 0; i < results.size() ; i++)
+	{
+		const ExecutionResults<InstanceConfig>& curr_results = results[i];
+		std::cout << "kb: " << curr_results.size_bytes / 1024.0 << "\n";
+		std::cout << "exit code: " << ExitCodeBuilder::to_str(curr_results.exit_code) << "\n";
+		std::cout << "cycles: " << std::to_string(curr_results.cycles_elapsed) << "\n";
+		std::cout << "memory: " << curr_results.memory.to_str() << "\n";
+		std::cout << "expected_memory: " << train_dataset.get_output(i).to_str() << "\n";
+		std::cout << "cmp: " << curr_results.memory.cmp(train_dataset.get_output(i)) << "\n";
+		std::cout << "energy: " << SimulatedAnnealing<InstanceConfig>::energy(curr_results.memory, train_dataset.get_output(i)) << "\n";
+		std::cout << "=============================\n";
+	}
+	std::cout << "energy_dataset: " << SimulatedAnnealing<InstanceConfig>::energy(results, train_dataset) << "\n";
+
+	results = Utm<InstanceConfig>::run_dataset(solution, test_dataset);
+	for (uint64_t i = 0; i < results.size() ; i++)
+	{
+		const ExecutionResults<InstanceConfig>& curr_results = results[i];
+		std::cout << "kb: " << curr_results.size_bytes / 1024.0 << "\n";
+		std::cout << "exit code: " << ExitCodeBuilder::to_str(curr_results.exit_code) << "\n";
+		std::cout << "cycles: " << std::to_string(curr_results.cycles_elapsed) << "\n";
+		std::cout << "memory: " << curr_results.memory.to_str() << "\n";
+		std::cout << "expected_memory: " << test_dataset.get_output(i).to_str() << "\n";
+		std::cout << "cmp: " << curr_results.memory.cmp(test_dataset.get_output(i)) << "\n";
+		std::cout << "energy: " << SimulatedAnnealing<InstanceConfig>::energy(curr_results.memory, test_dataset.get_output(i)) << "\n";
+		std::cout << "=============================\n";
+	}
+	std::cout << "energy_dataset: " << SimulatedAnnealing<InstanceConfig>::energy(results, test_dataset) << "\n";
 
 	return 0;
 }

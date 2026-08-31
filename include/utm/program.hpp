@@ -66,5 +66,17 @@ namespace turing_learning::utm
 		{
 			return sizeof(*this) + transitions_.size() * sizeof(StateTransition<Config>);
 		}
+
+		std::string to_str() const
+		{
+			std::string result;
+
+			for (const StateTransition<Config>& transition : transitions_)
+			{
+				result += "\t" + transition.to_str() + "\n";
+			}
+
+			return result;
+		}
 	};
 }

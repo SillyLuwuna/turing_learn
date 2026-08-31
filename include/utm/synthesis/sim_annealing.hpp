@@ -34,8 +34,17 @@ namespace turing_learning::utm::synthesis
 		const uint64_t num_heads_;
 		const uint64_t num_states_;
 
+		// static constexpr float inv_log2_8 = 1.0f / std::log2f(8.0f);
+		static constexpr float inv_log2_8 = 1.0f / 3.0f;
+
+		static inline constexpr float log8(float n)
+		{
+			// TODO make fast log8/log2
+			return std::log2f(n) * inv_log2_8;
+		}
 
 	public:
+		// TODO limit maximum connections / transitions
 		SimulatedAnnealing(
 			random::RandomEngine& rng_engine,
 			uint64_t num_symbols,
@@ -49,13 +58,12 @@ namespace turing_learning::utm::synthesis
 			num_states_(num_states)
 		{ }
 
-		inline constexpr float energy(const Memory<Config>& output, const Memory<Config>& expected)
+		static inline constexpr float energy(const Memory<Config>& output, const Memory<Config>& expected)
 		{
-			// return 1.0f / (1.0f + output.cmp(expected));
-			return output.cmp(expected);
+			return log8(output.cmp(expected) + 1);
 		}
 
-		inline constexpr float energy(const std::vector<ExecutionResults<Config>>& results, const Dataset<Config>& dataset)
+		static inline constexpr float energy(const std::vector<ExecutionResults<Config>>& results, const Dataset<Config>& dataset)
 		{
 			float curr_energy = 0;
 
@@ -97,41 +105,49 @@ namespace turing_learning::utm::synthesis
 
 			result.overwrite_transition(std::move(transition));
 
-			return origin;
+			return result;
 		}
 
 		inline constexpr float acceptance_probability(float solution_energy, float candidate_energy, float temperature)
 		{
+			// TODO < triggers even when they're the same value due to floating point precision error
 			return candidate_energy < solution_energy ? 1.0 : std::exp(-(candidate_energy - solution_energy) / temperature);
 		}
 
 		// TODO return statistics and other useful things
 		Program<Config> run(uint64_t max_iterations, const Dataset<Config>& dataset)
 		{
-			// TODO save best solution so far
-			float best_energy = std::numeric_limits<float>::max();
+			Program<Config> curr_solution = init_program();
+			float curr_solution_energy = energy(Utm<Config>::run_dataset(curr_solution, dataset), dataset);
 
-			Program<Config> solution = init_program();
-			float solution_energy = energy(Utm<Config>::run_dataset(solution, dataset), dataset);
+			float best_energy = curr_solution_energy;
+			Program<Config> best_solution = curr_solution;
 
 			for (uint64_t i = 0; i < max_iterations; i++)
 			{
 				float temperature = temperature_schedule(i, max_iterations);
-				// std::cout << std::to_string(temperature) << "\n";
-				Program<Config> candidate = neighbour(solution);
+				Program<Config> candidate = neighbour(curr_solution);
+				// TODO vector is being moved on run_dataset(), optimize
 				float curr_energy = energy(Utm<Config>::run_dataset(candidate, dataset), dataset);
-				if (acceptance_probability(solution_energy, curr_energy, temperature) >= rng_.nextf32())
+				// std::cout << "temperature: " << std::to_string(temperature) << "\n";
+				// std::cout << "program:\n" << candidate.to_str();
+				// std::cout << "energy: " << std::to_string(curr_energy) << "\n";
+				// std::cout << "solution energy: " << std::to_string(solution_energy) << "\n";
+				// std::cout << "probability: " << std::to_string(acceptance_probability(solution_energy, curr_energy, temperature)) << "\n";
+				// std::cout << "=========================\n";
+				if (acceptance_probability(curr_solution_energy, curr_energy, temperature) >= rng_.nextf32())
 				{
-					solution = std::move(candidate); // WARN assignment operation
-					solution_energy = curr_energy;
+					curr_solution = std::move(candidate); // WARN assignment operation
+					curr_solution_energy = curr_energy;
 
 					if (curr_energy < best_energy)
 					{
 						best_energy = curr_energy;
-						std::cout << std::to_string(best_energy) << "\n";
+						best_solution = curr_solution;
+						std::cout << "E: " << std::to_string(best_energy) << "\tT: " << std::to_string(temperature) << "\n";
 					}
 
-					if (solution_energy == 0.0f) // FIXME
+					if (curr_solution_energy - 0.0001 < 0.0f) // FIXME
 					{
 						std::cout << "found solution\n";
 						break;
@@ -139,7 +155,7 @@ namespace turing_learning::utm::synthesis
 				}
 			}
 
-			return solution;
+			return best_solution;
 		}
 	};
 }

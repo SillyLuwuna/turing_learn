@@ -14,6 +14,11 @@ namespace turing_learning::utm::synthesis
 		std::vector<Memory<Config>> outputs_;
 
 	public:
+		constexpr void add_entry(std::pair<Memory<Config>, Memory<Config>> entry)
+		{
+			add_entry(entry.first, entry.second);
+		}
+
 		constexpr void add_entry(Memory<Config> entry_input, Memory<Config> entry_output)
 		{
 			inputs_.emplace_back(std::move(entry_input));
