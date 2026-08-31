@@ -74,12 +74,12 @@ namespace turing_learning::utm
 
 		inline constexpr bool is_at_left_limit() const
 		{
-			return (pos_ == 0);
+			return pos_ == 0;
 		}
 
 		inline constexpr bool is_at_right_limit() const
 		{
-			return (pos_ == (tape_len - 1));
+			return pos_ == (tape_len - 1);
 		}
 
 		inline constexpr const Tape<Config>& tape() const

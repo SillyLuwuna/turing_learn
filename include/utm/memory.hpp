@@ -51,13 +51,13 @@ namespace turing_learning::utm
 			{
 				case HeadOperation::Left:
 					if (head.is_at_left_limit()) corrupted_ = true;
-					head.move_left();
+					else head.move_left();
 
 					break;
 
 				case HeadOperation::Right:
 					if (head.is_at_right_limit()) corrupted_ = true;
-					head.move_right();
+					else head.move_right();
 
 					break;
 

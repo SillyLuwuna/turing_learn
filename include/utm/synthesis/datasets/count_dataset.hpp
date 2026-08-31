@@ -161,13 +161,12 @@ namespace turing_learning::utm::synthesis::datasets
 
 			Tape<Config> tape = Tape<Config>();
 			uint64_t start = std::bit_width(max_len_);
-			uint64_t len = rng_stream.next64(max_len_) + 1;
+			uint64_t len = rng_stream.next64(max_len_ - start) + 1;
 
 			for (uint64_t i = start; i < (start + len); i++)
 			{
 				tape.write(i, rng_stream.next64(2) + 1);
 			}
-
 			Head<Config> head = Head<Config>(tape);
 
 			Tape<Config>* tapes[num_tapes] = { &tape };

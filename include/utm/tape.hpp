@@ -82,8 +82,8 @@ namespace turing_learning::utm
 		inline constexpr Tape()
 		{
 			init_tape();
-			low_ = std::numeric_limits<TapeLenType>::max();
-			high_ = std::numeric_limits<TapeLenType>::min();
+			low_ = 1;
+			high_ = 0;
 		}
 
 		constexpr Tape(const Tape& other)
@@ -92,8 +92,10 @@ namespace turing_learning::utm
 			high_ = other.high_;
 
 			init_tape();
+			// TODO use the contiguous bits copy instead of copying one by one
 			for (TapeLenType i = 0; i < tape_len; i++)
 			{
+				// std::cout << "i: " << std::to_string(i) << "\n";
 				tape_->rewrite_at(other.tape_->at(i), i);
 			}
 		}

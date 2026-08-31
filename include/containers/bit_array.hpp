@@ -419,8 +419,15 @@ namespace turing_learning::containers
 			{
 				if (aligned)
 				{
+					// std::cout << "available: " << std::to_string(total_bytes_) << "\t";
+					// std::cout << "start: " << std::to_string(start_byte) << "\t";
+					// std::cout << "start idx: " << std::to_string(start_idx) << "\t";
+					// std::cout << "len_bytes: " << std::to_string(len_bytes) << "\n";
 					std::memset(start, 0x00, len_bytes);
-					start[len_bytes] &= ~overflow_mask;
+					if constexpr (overflow_bits != 0)
+					{
+						start[len_bytes] &= ~overflow_mask;
+					}
 				}
 				else
 				{
@@ -449,7 +456,7 @@ namespace turing_learning::containers
 			{
 				std::memcpy(start, obj_start, len_bytes);
 
-				if (extra_byte > 0)
+				if constexpr (extra_byte > 0)
 				{
 					uint8_t end_bits = obj_start[len_bytes + extra_byte - 1] & overflow_mask;
 					start[len_bytes + extra_byte - 1] |= end_bits;
@@ -544,6 +551,10 @@ namespace turing_learning::containers
 			bool aligned = (missaligned_bits_start == 0);
 			if (aligned)
 			{
+				// std::cout << "available: " << std::to_string(total_bytes_) << "\t";
+				// std::cout << "start: " << std::to_string(start_byte) << "\t";
+				// std::cout << "start idx: " << std::to_string(start_idx) << "\t";
+				// std::cout << "len_bytes: " << std::to_string(len_bytes) << "\n";
 				std::memcpy(obj, start, len_bytes);
 
 				if (extra_byte > 0)
