@@ -79,11 +79,11 @@ namespace turing_learning::utm
 		}
 
 	public:
-		inline constexpr Tape()
+		inline constexpr Tape(TapeLenType start)
 		{
 			init_tape();
-			low_ = 1;
-			high_ = 0;
+			low_ = start + 1;
+			high_ = start;
 		}
 
 		constexpr Tape(const Tape& other)
