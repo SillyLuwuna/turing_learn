@@ -32,117 +32,117 @@ namespace turing_learning::utm::synthesis::datasets
 			Program<Config> solution;
 
 			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(0)
+				.from_state(1)
 				.on_head_read(1)
 				.write(1)
 				.move_head(HeadOperation::Right)
-				.go_to_state(0)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(0)
-				.on_head_read(2)
-				.write(1)
-				.move_head(HeadOperation::Left)
-				.go_to_state(2)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(0)
-				.on_head_read(0)
-				.write(0)
-				.move_head(HeadOperation::Left)
-				.go_to_state(5)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(2)
-				.on_head_read(1)
-				.write(1)
-				.move_head(HeadOperation::Left)
-				.go_to_state(2)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(2)
-				.on_head_read(0)
-				.write(0)
-				.move_head(HeadOperation::Left)
-				.go_to_state(3)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(3)
-				.on_head_read(2)
-				.write(1)
-				.move_head(HeadOperation::Left)
-				.go_to_state(3)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(3)
-				.on_head_read(0)
-				.write(2)
-				.move_head(HeadOperation::Right)
-				.go_to_state(4)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(3)
-				.on_head_read(1)
-				.write(2)
-				.move_head(HeadOperation::Right)
-				.go_to_state(4)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(4)
-				.on_head_read(1)
-				.write(1)
-				.move_head(HeadOperation::Right)
-				.go_to_state(4)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(4)
-				.on_head_read(0)
-				.write(0)
-				.move_head(HeadOperation::Right)
-				.go_to_state(0)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(5)
-				.on_head_read(1)
-				.write(0)
-				.move_head(HeadOperation::Left)
-				.go_to_state(5)
-				.build()
-			);
-
-			solution.add_transition(StateTransitionBuilder<Config>()
-				.from_state(5)
-				.on_head_read(0)
-				.write(0)
-				.move_head(HeadOperation::Left)
 				.go_to_state(1)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(1)
+				.on_head_read(2)
+				.write(1)
+				.move_head(HeadOperation::Left)
+				.go_to_state(2)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(1)
+				.on_head_read(0)
+				.write(0)
+				.move_head(HeadOperation::Left)
+				.go_to_state(5)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(2)
+				.on_head_read(1)
+				.write(1)
+				.move_head(HeadOperation::Left)
+				.go_to_state(2)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(2)
+				.on_head_read(0)
+				.write(0)
+				.move_head(HeadOperation::Left)
+				.go_to_state(3)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(3)
+				.on_head_read(2)
+				.write(1)
+				.move_head(HeadOperation::Left)
+				.go_to_state(3)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(3)
+				.on_head_read(0)
+				.write(2)
+				.move_head(HeadOperation::Right)
+				.go_to_state(4)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(3)
+				.on_head_read(1)
+				.write(2)
+				.move_head(HeadOperation::Right)
+				.go_to_state(4)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(4)
+				.on_head_read(1)
+				.write(1)
+				.move_head(HeadOperation::Right)
+				.go_to_state(4)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(4)
+				.on_head_read(0)
+				.write(0)
+				.move_head(HeadOperation::Right)
+				.go_to_state(1)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(5)
+				.on_head_read(1)
+				.write(0)
+				.move_head(HeadOperation::Left)
+				.go_to_state(5)
+				.build()
+			);
+
+			solution.add_transition(StateTransitionBuilder<Config>()
+				.from_state(5)
+				.on_head_read(0)
+				.write(0)
+				.move_head(HeadOperation::Left)
+				.go_to_state(0)
 				.build()
 			);
 
 			return solution;
 		}
 
-		// TODO should be static/constexpr
+		// PERF should be static/constexpr
 		const Program<Config> solution = gen_solution();
 		random::RandomEngine& rng_;
 		uint64_t max_len_;

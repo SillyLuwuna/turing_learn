@@ -33,12 +33,14 @@ namespace turing_learning::containers
 			bits_.template to_bits_fast<T, false, StepSize>(idx * StepSize, item);
 		}
 
-		inline constexpr void rewrite_at(T&& item, uint64_t idx)
+		// inline constexpr void rewrite_at(T&& item, uint64_t idx)
+		inline constexpr void rewrite_at(uint64_t idx, T&& item)
 		{
 			bits_.template to_bits_fast<T, true, StepSize>(idx * StepSize, std::move(item));
 		}
 
-		inline constexpr void rewrite_at(const T& item, uint64_t idx)
+		// inline constexpr void rewrite_at(const T& item, uint64_t idx)
+		inline constexpr void rewrite_at(uint64_t idx, const T& item)
 		{
 			bits_.template to_bits_fast<T, true, StepSize>(idx * StepSize, item);
 		}

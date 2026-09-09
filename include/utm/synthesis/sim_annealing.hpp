@@ -90,17 +90,20 @@ namespace turing_learning::utm::synthesis
 		// instead of copying. More efficient
 		Program<Config> neighbour(const Program<Config>& origin)
 		{
+			// TODO make neighbours make just one change to a transition, they are making too many changes per step.
+			// and start with a fully random program
+
 			// deleting transitions is fundamentally the same of having random unused transitions
 			Program<Config> result = origin;
 
 			StateTransition<Config> transition;
 			transition.trigger_state.state = rng_stream_.next64(num_states_);
-			transition.end_state = rng_stream_.next64(num_states_);
+			transition.target_state = rng_stream_.next64(num_states_);
 			for (uint64_t i = 0; i < num_heads_; i++)
 			{
 				transition.trigger_state.head_reads[i] = rng_stream_.next64(num_symbols_);
 				transition.head_writes[i] = rng_stream_.next64(num_symbols_);
-				transition.head_operations.rewrite_at(rng_stream_.next64(HeadOperation::NUM_OPERATIONS), i);
+				transition.head_operations.rewrite_at(i, rng_stream_.next64(HeadOperation::NUM_OPERATIONS));
 			}
 
 			result.overwrite_transition(std::move(transition));

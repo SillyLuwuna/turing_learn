@@ -6,6 +6,7 @@
 
 namespace turing_learning::utm::synthesis
 {
+	// TODO implement operator []
 	template<typename Config>
 	class Dataset
 	{
@@ -14,7 +15,7 @@ namespace turing_learning::utm::synthesis
 		std::vector<Memory<Config>> outputs_;
 
 	public:
-		// TODO copying is inefficient
+		// PERF copying is inefficient
 		constexpr void add_entry(std::pair<Memory<Config>, Memory<Config>> entry)
 		{
 			add_entry(entry.first, entry.second);

@@ -29,7 +29,7 @@ TEST_CASE("should contain aligned items")
 		const uint64_t max_val = fast_pow(2, num_bits);
 		uint16_t random_value = (std::rand() % max_val);
 
-		bits.rewrite_at(random_value, i);
+		bits.rewrite_at(i, random_value);
 		saved_bits[i] = random_value;
 	}
 
@@ -53,7 +53,7 @@ TEST_CASE("should contain shorter misaligned items")
 		const uint64_t max_val = fast_pow(2, num_bits);
 		uint8_t random_value = (std::rand() % max_val);
 
-		bits.rewrite_at(random_value, i);
+		bits.rewrite_at(i, random_value);
 		saved_bits[i] = random_value;
 	}
 
@@ -77,7 +77,7 @@ TEST_CASE("should contain longer misaligned items")
 		const uint64_t max_val = fast_pow(2, num_bits);
 		uint32_t random_value = (std::rand() % max_val);
 
-		bits.rewrite_at(random_value, i);
+		bits.rewrite_at(i, random_value);
 		saved_bits[i] = random_value;
 	}
 
@@ -101,7 +101,7 @@ TEST_CASE("should contain very large misaligned items, casting to lower")
 		const uint64_t max_val = fast_pow(2, 31);
 		uint32_t random_value = (std::rand() % max_val);
 
-		bits.rewrite_at(random_value, i);
+		bits.rewrite_at(i, random_value);
 		saved_bits[i] = random_value;
 	}
 
@@ -136,7 +136,7 @@ TEST_CASE("should contain very large misaligned items")
 			curr.number[j] = std::rand() % max_val;
 		}
 
-		bits.rewrite_at(curr, i);
+		bits.rewrite_at(i, curr);
 		saved_bits[i] = curr;
 	}
 
@@ -163,7 +163,7 @@ TEST_CASE("bigger container test")
 		const uint64_t max_val = fast_pow(2, num_bits);
 		uint16_t random_value = (std::rand() % max_val);
 
-		bits.rewrite_at(random_value, i);
+		bits.rewrite_at(i, random_value);
 		saved_bits[i] = random_value;
 	}
 
@@ -187,7 +187,7 @@ TEST_CASE("should equals")
 		const uint64_t max_val = fast_pow(2, num_bits);
 		uint16_t random_value = (std::rand() % max_val);
 
-		bits.rewrite_at(random_value, i);
+		bits.rewrite_at(i, random_value);
 		saved_bits[i] = random_value;
 	}
 
@@ -215,7 +215,7 @@ TEST_CASE("should equals small items")
 		const uint64_t max_val = fast_pow(2, num_bits);
 		uint16_t random_value = (std::rand() % max_val);
 
-		bits.rewrite_at(random_value, i);
+		bits.rewrite_at(i, random_value);
 		saved_bits[i] = random_value;
 	}
 
@@ -243,13 +243,13 @@ TEST_CASE("should not equals")
 		const uint64_t max_val = fast_pow(2, num_bits);
 		uint16_t random_value = (std::rand() % max_val);
 
-		bits.rewrite_at(random_value, i);
+		bits.rewrite_at(i, random_value);
 		saved_bits[i] = random_value;
 	}
 
 	ContiguousBits<uint16_t, uint8_t, num_bits, amount> copy = bits;
 	uint64_t diff_idx = amount / 2;
-	copy.rewrite_at(0, diff_idx);
+	copy.rewrite_at(diff_idx, 0);
 
 	for (uint64_t i = 0; i < amount; i++)
 	{

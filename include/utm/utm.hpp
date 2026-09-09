@@ -15,6 +15,8 @@ namespace turing_learning::utm
 	class Utm : public benchmark::ByteMeasurable
 	{
 	private:
+		using State = typename Config::State;
+
 		static constexpr uint64_t max_iterations_ = Config::max_iterations;
 
 		const Program<Config>& program_;
@@ -23,8 +25,7 @@ namespace turing_learning::utm
 		uint64_t cycle_count_;
 
 	public:
-		// state 0 is the entry point
-		// state 1 is reserved for final state
+
 		inline constexpr Utm(const Program<Config>& program, Memory<Config>& memory) :
 			program_(program),
 			memory_(memory),
@@ -36,18 +37,10 @@ namespace turing_learning::utm
 		{
 			if (exit_code_ != ExitCode::None) return;
 
-#ifdef DEBUG
-			std::cout << "\n       (state)\n";
-			std::cout << memory_.to_str() << "\n";
-#endif
-
 			TapeState tape_state = memory_.get_tape_state();
 
-			if (tape_state.state == 1)
+			if (tape_state.state == Config::terminal_state)
 			{
-#ifdef DEBUG
-				std::cout << "\nexited with code: Finished\n";
-#endif
 				exit_code_ = ExitCode::Finished;
 				return;
 			}
@@ -56,32 +49,17 @@ namespace turing_learning::utm
 
 			if (transition == nullptr)
 			{
-#ifdef DEBUG
-				std::cout << "\nexited with code: UnknownTransition\n";
-#endif
 				exit_code_ = ExitCode::UnknownTransition;
 				return;
 			}
-
-#ifdef DEBUG
-			std::cout << "\n     (transition)\n";
-			std::cout << transition->to_str();
-#endif
 
 			memory_.apply(*transition);
 
 			if (memory_.is_corrupted())
 			{
-#ifdef DEBUG
-				std::cout << "\nexited with code: MemoryCorrupted\n";
-#endif
 				exit_code_ = ExitCode::MemoryCorrupted;
 				return;
 			}
-
-#ifdef DEBUG
-			std::cout << "\n";
-#endif
 		}
 
 		constexpr void run()
@@ -89,9 +67,6 @@ namespace turing_learning::utm
 			cycle_count_ = 0;
 			while ((exit_code_ == ExitCode::None) && (cycle_count_ < max_iterations_))
 			{
-#ifdef DEBUG
-				std::cout << "\n====== step " << cycle_count_ << " ======\n";
-#endif
 				step();
 				cycle_count_++;
 			}

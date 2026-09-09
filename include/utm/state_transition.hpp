@@ -12,7 +12,7 @@ namespace turing_learning::utm
 {
 	using namespace turing_learning::containers;
 
-	// TODO could be made to exploit SIMD
+	// PERF could be made to exploit SIMD
 	template<typename Config>
 	struct StateTransition
 	{
@@ -26,12 +26,12 @@ namespace turing_learning::utm
 
 		TapeState<Config> trigger_state;
 		Symbol head_writes[num_heads];
-		State end_state;
+		State target_state;
 		ContiguousBits<uint8_t, uint8_t, 2, num_tapes> head_operations;
 
 		inline constexpr void set_head_operation(NumTapesType tape, HeadOperation operation)
 		{
-			head_operations.rewrite_at(operation, tape);
+			head_operations.rewrite_at(tape, operation);
 		}
 
 		inline constexpr HeadOperation get_head_operation(NumTapesType tape) const
@@ -46,7 +46,7 @@ namespace turing_learning::utm
 			str += "state[";
 			str += std::to_string(trigger_state.state);
 			str += "->";
-			str += std::to_string(end_state);
+			str += std::to_string(target_state);
 			str += "]";
 
 			for (NumHeadsType i = 0; i < num_heads; i++)
@@ -101,7 +101,7 @@ namespace turing_learning::utm
 
 		inline constexpr StateTransitionBuilder<Config>& go_to_state(State end_state)
 		{
-			state_transition_.end_state = end_state;
+			state_transition_.target_state = end_state;
 			return *this;
 		}
 

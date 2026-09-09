@@ -521,8 +521,8 @@ namespace turing_learning::containers
 		template <typename T, uint64_t LenBits>
 		constexpr T from_bits_fast(uint64_t start_idx) const
 		{
-			// TODO for efficiency, instead of using uint8_t, use maximum chunk size (tricky)
-			// TODO for efficiency, do bit operations on the start/end directly instead of using masks (?)
+			// PERF for efficiency, instead of using uint8_t, use maximum chunk size (tricky)
+			// PERF for efficiency, do bit operations on the start/end directly instead of using masks (?)
 			static_assert(std::is_trivially_copyable_v<T>, "type must be trivially copyable for set_bits()");
 			constexpr uint64_t len_bytes = LenBits >> 3; // len_bits / 8
 			constexpr uint64_t overflow_bits = LenBits & 7; // len_bits % 8

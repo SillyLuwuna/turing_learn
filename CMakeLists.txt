@@ -36,9 +36,9 @@ target_compile_options(${BIN} PRIVATE
 	-Wall
 	-Wextra
 	-Wpedantic
-	-O3
-	#-march=native
-	#-ffast-math
+	-Ofast
+	-march=native
+	-ffast-math
 	#-fno-inline
 	#-fno-omit-frame-pointer
 	-g

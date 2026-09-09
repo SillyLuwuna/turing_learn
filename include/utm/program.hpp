@@ -13,7 +13,7 @@ namespace turing_learning::utm
 	class Program : public benchmark::ByteMeasurable
 	{
 	private:
-		// std::vector<std::vector<StateTransition<Config>>> transitions_; // TODO optimize with this
+		// std::vector<std::vector<StateTransition<Config>>> transitions_; // PERF optimize with this
 		std::unordered_set<StateTransition<Config>, StateTransitionHash<Config>, StateTransitionEqual<Config>> transitions_;
 
 	public:

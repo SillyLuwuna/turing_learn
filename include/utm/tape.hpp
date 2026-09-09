@@ -92,11 +92,11 @@ namespace turing_learning::utm
 			high_ = other.high_;
 
 			init_tape();
-			// TODO use the contiguous bits copy instead of copying one by one
+			// PERF use the contiguous bits copy instead of copying one by one
 			for (TapeLenType i = 0; i < tape_len; i++)
 			{
 				// std::cout << "i: " << std::to_string(i) << "\n";
-				tape_->rewrite_at(other.tape_->at(i), i);
+				tape_->rewrite_at(i, other.tape_->at(i));
 			}
 		}
 
@@ -108,7 +108,7 @@ namespace turing_learning::utm
 			init_tape();
 			for (TapeLenType i = 0; i < tape_len; i++)
 			{
-				tape_->rewrite_at(other.tape_->at(i), i);
+				tape_->rewrite_at(i, other.tape_->at(i));
 			}
 
 			return *this;
@@ -144,7 +144,7 @@ namespace turing_learning::utm
 		inline constexpr void write(TapeLenType idx, Symbol symbol)
 		{
 			update_bounds(idx, idx, symbol);
-			tape_->rewrite_at(symbol, idx);
+			tape_->rewrite_at(idx, symbol);
 			// tape_[idx] = symbol;
 		}
 
@@ -153,7 +153,7 @@ namespace turing_learning::utm
 			update_bounds(idx, idx + len, symbol);
 			for (TapeLenType i = 0; i < tape_len; i++)
 			{
-				tape_->rewrite_at(symbol, idx);
+				tape_->rewrite_at(idx, symbol);
 				// tape_[idx] = symbol;
 			}
 		}
@@ -168,7 +168,7 @@ namespace turing_learning::utm
 		{
 			if (this->size() != other.size()) return false;
 
-			// TODO make bit_array cmp for different starts
+			// PERF make bit_array cmp for different starts
 			for (uint64_t i = 0; i < this->size(); i++)
 			{
 				if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))
@@ -187,7 +187,7 @@ namespace turing_learning::utm
 
 			uint64_t diff = max_len - min_len;
 
-			// TODO make bit_array cmp for different starts
+			// PERF make bit_array cmp for different starts
 			for (uint64_t i = 0; i < min_len; i++)
 			{
 				if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))

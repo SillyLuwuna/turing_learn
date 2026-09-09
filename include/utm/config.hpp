@@ -23,6 +23,9 @@ namespace turing_learning::utm
 		static constexpr State num_states = NumStates;
 		static constexpr uint64_t max_iterations = MaxIterations;
 
+		static constexpr State terminal_state = 0;
+		static constexpr State entry_state = 1;
+
 		// TODO change for std::bit_width
 		static constexpr uint64_t get_required_bits(uint64_t size)
 		{

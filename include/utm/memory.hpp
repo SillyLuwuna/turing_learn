@@ -68,7 +68,7 @@ namespace turing_learning::utm
 
 		inline constexpr void change_state(const StateTransition<Config>& transition)
 		{
-			state_ = transition.end_state;
+			state_ = transition.target_state;
 		}
 
 		inline constexpr Head<Config> gen_local_head(std::size_t idx, const Head<Config>& head, Tape<Config>* (&tapes)[num_tapes])
@@ -98,10 +98,11 @@ namespace turing_learning::utm
 			std::index_sequence<HeadIs...>) :
 				tapes_{ *tapes[TapeIs]... },
 				heads_{ gen_local_head(HeadIs, *heads[HeadIs], tapes)... },
-				state_(0),
+				state_(Config::entry_state),
 				corrupted_(false)
 		{ }
 
+		// for copying
 		template <std::size_t... TapeIs, std::size_t... HeadIs>
 		inline constexpr Memory(
 			const Tape<Config> (&tapes)[num_tapes],
