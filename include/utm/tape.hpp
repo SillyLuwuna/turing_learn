@@ -22,15 +22,23 @@ namespace turing_learning::utm
 		static constexpr TapeLenType tape_len = Config::tape_len;
 		static constexpr uint64_t symbol_bits = Config::symbol_bits;
 
-		// could be allocated as needed, for memory efficiency
-		std::unique_ptr<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>> tape_;
-		// uint8_t tape_[tape_len];
+		// PERF could be allocated as needed, for memory efficiency
+		// PERF for heap allocation, there has to be a memory pool that distributes the contiguous bits
+		// else, each malloc becomes extremely expensive
+
+		// std::unique_ptr<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>> tape_;
+		ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len> tape_;
+		// std::unique_ptr<uint8_t[]> tape_;
+		// Symbol tape_[tape_len];
+
 		TapeLenType low_;
 		TapeLenType high_;
 
 		inline constexpr void init_tape()
 		{
-			tape_ = std::make_unique<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>>();
+			// tape_ = std::make_unique<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>>();
+			// tape_ = std::make_unique<uint8_t[]>(tape_len);
+			// std::memset(tape_, 0, tape_len * sizeof(Symbol));
 		}
 
 		inline constexpr void update_low(TapeLenType idx)
@@ -92,12 +100,14 @@ namespace turing_learning::utm
 			high_ = other.high_;
 
 			init_tape();
-			// PERF use the contiguous bits copy instead of copying one by one
-			for (TapeLenType i = 0; i < tape_len; i++)
-			{
-				// std::cout << "i: " << std::to_string(i) << "\n";
-				tape_->rewrite_at(i, other.tape_->at(i));
-			}
+			// for (TapeLenType i = 0; i < tape_len; i++)
+			// {
+			// 	// tape_->rewrite_at(i, other.tape_->at(i));
+			// 	// tape_.rewrite_at(i, other.tape_.at(i));
+			// 	tape_[i] = other.tape_[i];
+			// }
+			// std::memcpy(tape_, other.tape_, tape_len * sizeof(Symbol));
+			tape_ = other.tape_;
 		}
 
 		inline constexpr Tape& operator=(const Tape& other)
@@ -106,17 +116,21 @@ namespace turing_learning::utm
 			high_ = other.high_;
 
 			init_tape();
-			for (TapeLenType i = 0; i < tape_len; i++)
-			{
-				tape_->rewrite_at(i, other.tape_->at(i));
-			}
+			// for (TapeLenType i = 0; i < tape_len; i++)
+			// {
+			// 	// tape_->rewrite_at(i, other.tape_->at(i));
+			// 	// tape_.rewrite_at(i, other.tape_.at(i));
+			// 	tape_[i] = other.tape_[i];
+			// }
+			// std::memcpy(tape_, other.tape_, tape_len * sizeof(Symbol));
+			tape_ = other.tape_;
 
 			return *this;
 		}
 
 		inline constexpr Tape(const std::vector<Symbol>& initial_symbols) : Tape()
 		{
-			uint64_t half_idx = tape_len / 2;
+			constexpr uint64_t half_idx = tape_len / 2;
 			uint64_t half_len = initial_symbols.size() / 2;
 
 			low_ = half_idx - half_len;
@@ -125,7 +139,8 @@ namespace turing_learning::utm
 			uint64_t symbol_idx = 0;
 			for (uint64_t i = low_; i <= high_; i++)
 			{
-				tape_->emplace_at(initial_symbols[symbol_idx++], i);
+				// tape_->emplace_at(i, initial_symbols[symbol_idx++]);
+				tape_.emplace_at(i, initial_symbols[symbol_idx++]);
 				// tape_[i] = initial_symbols[symbol_idx++];
 			}
 		}
@@ -137,30 +152,34 @@ namespace turing_learning::utm
 
 		inline constexpr Symbol read(TapeLenType idx) const
 		{
-			return tape_->at(idx);
+			// return tape_->at(idx);
+			return tape_.at(idx);
 			// return tape_[idx];
 		}
 
 		inline constexpr void write(TapeLenType idx, Symbol symbol)
 		{
 			update_bounds(idx, idx, symbol);
-			tape_->rewrite_at(idx, symbol);
+			// tape_->rewrite_at(idx, symbol);
+			tape_.rewrite_at(idx, symbol);
 			// tape_[idx] = symbol;
 		}
 
 		inline constexpr void write(TapeLenType idx, Symbol symbol, TapeLenType len)
 		{
 			update_bounds(idx, idx + len, symbol);
-			for (TapeLenType i = 0; i < tape_len; i++)
+			for (TapeLenType i = 0; i < len; i++)
 			{
-				tape_->rewrite_at(idx, symbol);
+				// tape_->rewrite_at(idx, symbol);
+				tape_.rewrite_at(idx, symbol);
 				// tape_[idx] = symbol;
 			}
 		}
 
 		inline constexpr Symbol operator[](TapeLenType idx)
 		{
-			return tape_->at(idx);
+			// return tape_->at(idx);
+			return tape_.at(idx);
 			// return tape_[idx];
 		}
 
@@ -171,7 +190,9 @@ namespace turing_learning::utm
 			// PERF make bit_array cmp for different starts
 			for (uint64_t i = 0; i < this->size(); i++)
 			{
-				if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))
+				// if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))
+				if (this->tape_.at(i + this->low_) != other.tape_.at(i + other.low_))
+				// if (this->tape_[i + this->low_ ]!= other.tape_[i + other.low_])
 				{
 					return false;
 				}
@@ -190,7 +211,9 @@ namespace turing_learning::utm
 			// PERF make bit_array cmp for different starts
 			for (uint64_t i = 0; i < min_len; i++)
 			{
-				if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))
+				// if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))
+				if (this->tape_.at(i + this->low_) != other.tape_.at(i + other.low_))
+				// if (this->tape_[i + this->low_] != other.tape_[i + other.low_])
 				{
 					diff++;
 				}
@@ -236,8 +259,8 @@ namespace turing_learning::utm
 
 		uint64_t num_bytes() const override
 		{
-			return sizeof(*this) + sizeof(*tape_);
-			// return sizeof(*this);
+			// return sizeof(*this) + sizeof(*tape_);
+			return sizeof(*this) + sizeof(tape_);
 		}
 	};
 }

@@ -36,12 +36,12 @@ target_compile_options(${BIN} PRIVATE
 	-Wall
 	-Wextra
 	-Wpedantic
-	-Ofast
+	-O3
 	-march=native
 	-ffast-math
-	#-fno-inline
-	#-fno-omit-frame-pointer
-	-g
+	# -fno-inline
+	# -fno-omit-frame-pointer
+	# -g
 )
 
 if (BUILD_TESTS)

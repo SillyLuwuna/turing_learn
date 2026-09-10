@@ -392,6 +392,27 @@ namespace turing_learning::containers
 			return *this;
 		}
 
+		// assumes byte alignment of start and end
+		template <typename T, uint64_t LenBits>
+		inline constexpr void to_bits_fast_aligned(uint64_t obj_start_idx, const T& obj)
+		{
+			constexpr uint64_t len_bytes = LenBits >> 3; // len_bits / 8
+			constexpr bool is_container_sized = sizeof(Container) == sizeof(T);
+
+			if constexpr (is_container_sized)
+			{
+				// std::memcpy(bit_chunks_ + obj_start_idx, &obj, len_bytes);
+
+				bit_chunks_[obj_start_idx] = *const_cast<Container*>(&obj);
+				return;
+			}
+
+			uint64_t start_byte = (obj_start_idx * LenBits) >> 3;
+			uint8_t* start = (uint8_t*)bit_chunks_ + start_byte;
+			std::memcpy(start, &obj, len_bytes);
+			// std::memcpy(start, (uint8_t*)&obj, len_bytes);
+		}
+
 		// clearing is inefficient
 		template <typename T, bool Clear, uint64_t LenBits>
 		constexpr void to_bits_fast(uint64_t start_idx, const T& obj)
@@ -518,6 +539,33 @@ namespace turing_learning::containers
 			*this |= obj_bits;
 		}
 
+		// assumes byte alignment of start and end
+		template<typename T, uint64_t LenBits>
+		inline constexpr T from_bits_fast_aligned(uint64_t obj_start_idx) const
+		{
+			constexpr uint64_t len_bytes = LenBits >> 3; // len_bits / 8
+			constexpr uint64_t true_obj_bytes = sizeof(T);
+			constexpr bool is_container_sized = sizeof(Container) == sizeof(T);
+
+			if constexpr (is_container_sized)
+			{
+				// uint8_t obj[true_obj_bytes];
+				// std::memcpy(obj, bit_chunks_ + obj_start_idx, true_obj_bytes);
+				// return *reinterpret_cast<T*>(obj);
+
+				return *const_cast<Container*>(bit_chunks_ + obj_start_idx);
+			}
+
+			uint64_t start_bit = obj_start_idx * LenBits;
+			uint64_t start_byte = start_bit >> 3;
+			uint8_t* start = (uint8_t*)bit_chunks_ + start_byte;
+
+			uint8_t obj[true_obj_bytes];
+			std::memcpy(obj, start, len_bytes);
+
+			return *reinterpret_cast<T*>(obj);
+		}
+
 		template <typename T, uint64_t LenBits>
 		constexpr T from_bits_fast(uint64_t start_idx) const
 		{
@@ -549,7 +597,7 @@ namespace turing_learning::containers
 			{
 				std::memcpy(obj, start, len_bytes);
 
-				if (extra_byte > 0)
+				if constexpr (extra_byte > 0)
 				{
 					// uint8_t overflow_mask = 0xff >> (8 - overflow_bits);
 					uint8_t end_bits = start[len_bytes] & overflow_mask;

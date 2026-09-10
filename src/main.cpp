@@ -30,11 +30,10 @@ int main()
 
 	const uint64_t num_symbols_effective = 3;
 	const uint64_t max_dataset_entry_len = 100;
-	// const uint64_t train_dataset_len = 10;
 	const uint64_t train_dataset_len = 50;
 	const uint64_t test_dataset_len = 1;
-	// const uint64_t simulated_annealing_iterations = 20000000;
-	const uint64_t max_solution_steps = 100000000;
+	// const uint64_t max_solution_steps = 10000;
+	const uint64_t max_solution_steps = 1000000;
 
 	// treat as maximums
 	const uint64_t num_heads = 1;
@@ -45,7 +44,7 @@ int main()
 	const uint64_t num_states = 6;
 	// const uint64_t max_iterations = 10000000000;
 	// const uint64_t max_iterations = 60000000;
-	const uint64_t max_iterations = 100000;
+	const uint64_t max_iterations = 5000;
 	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states, max_iterations>;
 
 	Xoshiro256p rng(seed);
@@ -63,22 +62,23 @@ int main()
 	Program<InstanceConfig> solution = tnf.run(max_solution_steps, train_dataset);
 
 
-	std::cout << "program:\n" << solution.to_str();
-
+	// std::cout << "program:\n" << solution.to_str();
+	//
 	std::vector<ExecutionResults<InstanceConfig>> results = Utm<InstanceConfig>::run_dataset(solution, train_dataset);
-	for (uint64_t i = 0; i < results.size() ; i++)
-	{
-		const ExecutionResults<InstanceConfig>& curr_results = results[i];
-		std::cout << "kb: " << curr_results.size_bytes / 1024.0 << "\n";
-		std::cout << "exit code: " << ExitCodeBuilder::to_str(curr_results.exit_code) << "\n";
-		std::cout << "cycles: " << std::to_string(curr_results.cycles_elapsed) << "\n";
-		std::cout << "memory: " << curr_results.memory.to_str() << "\n";
-		std::cout << "expected_memory: " << train_dataset.get_output(i).to_str() << "\n";
-		std::cout << "cmp: " << curr_results.memory.cmp(train_dataset.get_output(i)) << "\n";
-		std::cout << "energy: " << SimulatedAnnealing<InstanceConfig>::energy(curr_results.memory, train_dataset.get_output(i)) << "\n";
-		std::cout << "=============================\n";
-	}
-	std::cout << "energy_dataset: " << SimulatedAnnealing<InstanceConfig>::energy(results, train_dataset) << "\n";
+	// for (uint64_t i = 0; i < results.size() ; i++)
+	// {
+	// 	const ExecutionResults<InstanceConfig>& curr_results = results[i];
+	// 	std::cout << "kb: " << curr_results.size_bytes / 1024.0 << "\n";
+	// 	std::cout << "exit code: " << ExitCodeBuilder::to_str(curr_results.exit_code) << "\n";
+	// 	std::cout << "cycles: " << std::to_string(curr_results.cycles_elapsed) << "\n";
+	// 	std::cout << "memory: " << curr_results.memory.to_str() << "\n";
+	// 	std::cout << "expected_memory: " << train_dataset.get_output(i).to_str() << "\n";
+	// 	std::cout << "cmp: " << curr_results.memory.cmp(train_dataset.get_output(i)) << "\n";
+	// 	std::cout << "energy: " << SimulatedAnnealing<InstanceConfig>::energy(curr_results.memory, train_dataset.get_output(i)) << "\n";
+	// 	std::cout << "=============================\n";
+	// }
+	// std::cout << "energy_dataset: " << SimulatedAnnealing<InstanceConfig>::energy(results, train_dataset) << "\n";
+	std::cout << "training error: " << TreeNormalForm<InstanceConfig>::error(results, train_dataset) << "\n";
 
 	// results = Utm<InstanceConfig>::run_dataset(solution, test_dataset);
 	// for (uint64_t i = 0; i < results.size() ; i++)

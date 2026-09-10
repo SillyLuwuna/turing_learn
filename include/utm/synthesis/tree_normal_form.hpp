@@ -3,6 +3,7 @@
 #include "utm/program.hpp"
 #include "utm/synthesis/dataset.hpp"
 #include "utm/utm.hpp"
+#include <thread>
 
 namespace turing_learning::utm::synthesis
 {
@@ -42,9 +43,9 @@ namespace turing_learning::utm::synthesis
 		{
 			StateTransition<Config> final_state_transition {
 				.trigger_state = trigger_state, // PERF copy
-				.head_writes = {}, // WARN ok to be empty?
+				.head_writes = {},
 				.target_state = 0,
-				.head_operations = {}, // WARN ok to be empty?
+				.head_operations = {},
 			};
 
 			return final_state_transition;
@@ -104,9 +105,9 @@ namespace turing_learning::utm::synthesis
 
 				StateTransition<Config> known_state_transition {
 					.trigger_state = trigger_state, // PERF copy
-					.head_writes = {}, // WARN ok to be empty?
+					.head_writes = {},
 					.target_state = target_state,
-					.head_operations = {}, // WARN ok to be empty?
+					.head_operations = {},
 				};
 
 				// PERF there is simmetry here. No need to make every single child every single time.
@@ -124,6 +125,11 @@ namespace turing_learning::utm::synthesis
 			{
 				return;
 			}
+
+			// std::cout << "tm:\n";
+			// std::cout << parent.to_str() << "\n";
+			// using namespace std::chrono_literals;
+			// std::this_thread::sleep_for(1000ms);
 			// std::cout << std::to_string(iteration_) << "\n";
 			// std::cout << "parent:\n";
 			// std::cout << parent.to_str() << "\n";
@@ -141,6 +147,10 @@ namespace turing_learning::utm::synthesis
 				if (exit_code == Finished)
 				{
 					total_error += working_tape.cmp(dataset_->get_output(i));
+					if (total_error >= best_total_error_)
+					{
+						return;
+					}
 					continue;
 				}
 
@@ -180,7 +190,7 @@ namespace turing_learning::utm::synthesis
 
 			if (total_error < best_total_error_)
 			{
-				std::cout << "new best: " << std::to_string(total_error) << "\n";
+				// std::cout << "new best: " << std::to_string(total_error) << "\n";
 				best_total_error_ = total_error;
 				best_tm_ = parent;
 			}
@@ -194,6 +204,23 @@ namespace turing_learning::utm::synthesis
 			best_total_error_(std::numeric_limits<uint64_t>::max()),
 			next_new_state_(2)
 		{ }
+
+		static inline constexpr uint64_t error(const std::vector<ExecutionResults<Config>>& results, const Dataset<Config>& dataset)
+		{
+			uint64_t total_error = 0;
+
+			for (uint64_t i = 0; i < results.size(); i++)
+			{
+				total_error += error(results[i].memory, dataset.get_output(i));
+			}
+
+			return total_error;
+		}
+
+		static inline constexpr uint64_t error(const Memory<Config>& output, const Memory<Config>& expected)
+		{
+			return output.cmp(expected);
+		}
 
 		Program<Config> run(uint64_t max_iterations, const Dataset<Config>& dataset)
 		{

@@ -10,12 +10,16 @@ namespace turing_learning::utm
 		requires(NumHeads > 0 && NumTapes > 0 && TapeLen > 0 && NumSymbols > 0 && NumStates >= 2 && MaxIterations > 0)
 	struct Config
 	{
+		// -1 because: for i.e. 5 heads, we need at most the number 4, because 0 is included
 		using NumHeadsType = typename SizeSelector<NumHeads>::type;
 		using NumTapesType = typename SizeSelector<NumTapes>::type;
 		using TapeLenType = typename SizeSelector<TapeLen>::type;
 		using Symbol = typename SizeSelector<NumSymbols>::type;
 		using State = typename SizeSelector<NumStates>::type;
 
+		// FIXME NumHeads will be greater than NumHeadsType can support, and same for the others
+		// this requires fixing in every other class that uses this. Make them just use the original
+		// template parameters by changing all of this to uint64_t, first remove it to see where it errors
 		static constexpr NumHeadsType num_heads = NumHeads;
 		static constexpr NumTapesType num_tapes = NumTapes;
 		static constexpr TapeLenType tape_len = TapeLen;
