@@ -95,7 +95,7 @@ namespace turing_learning::utm
 
 		inline constexpr StateTransitionBuilder<Config>& from_state(State start_state)
 		{
-			state_transition_.trigger_state.state = start_state;
+			state_transition_.trigger_state.core.state = start_state;
 			return *this;
 		}
 
@@ -107,7 +107,7 @@ namespace turing_learning::utm
 
 		inline constexpr StateTransitionBuilder<Config>& on_head_read(NumTapesType tape, Symbol symbol)
 		{
-			state_transition_.trigger_state.head_reads[tape] = symbol;
+			state_transition_.trigger_state.core.head_reads[tape] = symbol;
 			return *this;
 		}
 
@@ -133,12 +133,12 @@ namespace turing_learning::utm
 	{
 		using is_transparent = void;
 
-		std::size_t operator()(const StateTransition<Config>& transition) const
+		inline std::size_t operator()(const StateTransition<Config>& transition) const
 		{
 			return transition.trigger_state.hash();
 		}
 
-		std::size_t operator()(const TapeState<Config>& tape_state) const
+		inline std::size_t operator()(const TapeState<Config>& tape_state) const
 		{
 			return tape_state.hash();
 		}
@@ -149,22 +149,22 @@ namespace turing_learning::utm
 	{
 		using is_transparent = void;
 
-		bool operator()(const StateTransition<Config>& lhs, const StateTransition<Config>& rhs) const
+		inline bool operator()(const StateTransition<Config>& lhs, const StateTransition<Config>& rhs) const
 		{
 			return lhs.trigger_state == rhs.trigger_state;
 		}
 
-		bool operator()(const StateTransition<Config>& lhs, const TapeState<Config>& rhs) const
+		inline bool operator()(const StateTransition<Config>& lhs, const TapeState<Config>& rhs) const
 		{
 			return lhs.trigger_state == rhs;
 		}
 
-		bool operator()(const TapeState<Config>& lhs, const StateTransition<Config>& rhs) const
+		inline bool operator()(const TapeState<Config>& lhs, const StateTransition<Config>& rhs) const
 		{
 			return lhs == rhs.trigger_state;
 		}
 
-		bool operator()(const TapeState<Config>& lhs, const TapeState<Config>& rhs) const
+		inline bool operator()(const TapeState<Config>& lhs, const TapeState<Config>& rhs) const
 		{
 			return lhs == rhs;
 		}

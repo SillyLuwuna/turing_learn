@@ -10,6 +10,7 @@ namespace turing_learning::utm
 	struct SymbolBuilder
 	{
 		using Symbol = typename Config::Symbol;
+
 		static inline constexpr std::string to_str(Symbol symbol)
 		{
 			if (symbol == 0)

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "benchmark/benchmark.hpp"
+#include "benchmark/timer.hpp"
 #include "random/mt19937_64.hpp"
 #include "utm/config.hpp"
 #include "utm/memory.hpp"
@@ -27,23 +28,22 @@ int main()
 {
 	const uint64_t seed = 137;
 	std::cout << "seed: " << std::to_string(seed) << "\n";
+	benchmark::Timer::restart();
 
 	const uint64_t num_symbols_effective = 3;
 	const uint64_t max_dataset_entry_len = 100;
 	const uint64_t train_dataset_len = 50;
 	const uint64_t test_dataset_len = 1;
-	// const uint64_t max_solution_steps = 10000;
-	const uint64_t max_solution_steps = 1000000;
+	// const uint64_t max_solution_steps = 1000000;
+	const uint64_t max_solution_steps = 100000;
 
 	// treat as maximums
 	const uint64_t num_heads = 1;
 	const uint64_t num_tapes = 1;
 	// const uint64_t tape_len = 10001;
 	const uint64_t tape_len = 100;
-	const uint64_t num_symbols = 256; // 256 for performance
+	const uint64_t num_symbols = 255; // 255 for performance (1 byte alignment) // TODO scuffed since there's technically 256 values but only 255 symbols
 	const uint64_t num_states = 6;
-	// const uint64_t max_iterations = 10000000000;
-	// const uint64_t max_iterations = 60000000;
 	const uint64_t max_iterations = 5000;
 	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states, max_iterations>;
 
@@ -95,6 +95,12 @@ int main()
 	// 	std::cout << "=============================\n";
 	// }
 	// std::cout << "energy_dataset: " << SimulatedAnnealing<InstanceConfig>::energy(results, test_dataset) << "\n";
+
+	// std::cout << "timer: " << std::to_string(Timer::total_elapsed_ms()) << "ms\n";
+
+	// std::cout << std::to_string(sizeof(InstanceConfig::Symbol)) << "\n";
+	// std::cout << std::to_string(InstanceConfig::num_symbols) << "\n";
+	// std::cout << std::to_string(InstanceConfig::symbol_bits) << "\n";
 
 	return 0;
 }

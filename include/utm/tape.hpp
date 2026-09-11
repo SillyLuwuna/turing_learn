@@ -27,7 +27,7 @@ namespace turing_learning::utm
 		// else, each malloc becomes extremely expensive
 
 		// std::unique_ptr<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>> tape_;
-		ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len> tape_;
+		ContiguousBits<uint8_t, uint8_t, symbol_bits, tape_len> tape_;
 		// std::unique_ptr<uint8_t[]> tape_;
 		// Symbol tape_[tape_len];
 
@@ -81,6 +81,7 @@ namespace turing_learning::utm
 		inline constexpr void update_bounds(TapeLenType low, TapeLenType high, Symbol symbol)
 		{
 			if (shrink_to_fit(low, high, symbol)) return;
+			// if (symbol == 0) return;
 
 			update_low(low);
 			update_high(high);

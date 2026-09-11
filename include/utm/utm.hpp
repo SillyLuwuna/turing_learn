@@ -39,7 +39,7 @@ namespace turing_learning::utm
 
 			TapeState tape_state = memory_.get_tape_state();
 
-			if (tape_state.state == Config::terminal_state)
+			if (tape_state.core.state == Config::terminal_state)
 			{
 				exit_code_ = ExitCode::Finished;
 				return;

@@ -540,6 +540,7 @@ namespace turing_learning::containers
 		}
 
 		// assumes byte alignment of start and end
+		// obj_start_idx is the index of the object, assuming all of the objects have LenBits
 		template<typename T, uint64_t LenBits>
 		inline constexpr T from_bits_fast_aligned(uint64_t obj_start_idx) const
 		{
@@ -556,11 +557,14 @@ namespace turing_learning::containers
 				return *const_cast<Container*>(bit_chunks_ + obj_start_idx);
 			}
 
-			uint64_t start_bit = obj_start_idx * LenBits;
-			uint64_t start_byte = start_bit >> 3;
+			uint64_t start_byte = obj_start_idx * len_bytes;
 			uint8_t* start = (uint8_t*)bit_chunks_ + start_byte;
 
 			uint8_t obj[true_obj_bytes];
+			if constexpr (true_obj_bytes > len_bytes)
+			{
+				std::memset(obj, 0x00, true_obj_bytes);
+			}
 			std::memcpy(obj, start, len_bytes);
 
 			return *reinterpret_cast<T*>(obj);
@@ -590,7 +594,10 @@ namespace turing_learning::containers
 			uint8_t end_mask = ((missaligned_bits_end == 0) ? 0 : (0xff >> (8 - missaligned_bits_end)));
 
 			uint8_t obj[true_obj_bytes];
-			memset(obj, 0x00, true_obj_bytes);
+			if constexpr (true_obj_bytes > len_bytes)
+			{
+				std::memset(obj, 0x00, true_obj_bytes);
+			}
 
 			bool aligned = (missaligned_bits_start == 0);
 			if (aligned)

@@ -131,13 +131,14 @@ namespace turing_learning::utm
 
 		inline constexpr TapeState<Config> get_tape_state() const
 		{
+			// PERF prepare many tape states beforehand
 			TapeState<Config> tape_state;
-			std::memset(tape_state.head_reads, 0, sizeof(tape_state.head_reads));
+			std::memset(tape_state.core.head_reads, 0, sizeof(tape_state.core.head_reads));
 
-			tape_state.state = state_;
+			tape_state.core.state = state_;
 			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
-				tape_state.head_reads[i] = heads_[i].read();
+				tape_state.core.head_reads[i] = heads_[i].read();
 			}
 
 			return tape_state;

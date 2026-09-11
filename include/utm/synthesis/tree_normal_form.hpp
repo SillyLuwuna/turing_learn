@@ -1,5 +1,6 @@
 #pragma once
 
+#include "benchmark/timer.hpp"
 #include "utm/program.hpp"
 #include "utm/synthesis/dataset.hpp"
 #include "utm/utm.hpp"
@@ -160,6 +161,7 @@ namespace turing_learning::utm::synthesis
 					TapeState<Config> tape_state = working_tape.get_tape_state();
 					uint64_t new_state_idx = 0;
 					const std::vector<Program<Config>> children = gen_children(parent, tape_state, &new_state_idx);
+					// std::cout << std::to_string(benchmark::Timer::total_elapsed_ms()) << "\n";
 
 					bool incremented_new_state = false;
 					// PERF instead of children.size() calculate number of children in constexpr
@@ -233,7 +235,7 @@ namespace turing_learning::utm::synthesis
 
 			expand(init);
 
-			std::cout << "iterations: " << std::to_string(iteration_) << "\n";
+			// std::cout << "iterations: " << std::to_string(iteration_) << "\n";
 
 			return best_tm_;
 		}

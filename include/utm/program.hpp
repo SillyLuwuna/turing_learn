@@ -13,7 +13,6 @@ namespace turing_learning::utm
 	class Program : public benchmark::ByteMeasurable
 	{
 	private:
-		// std::vector<std::vector<StateTransition<Config>>> transitions_; // PERF optimize with this
 		std::unordered_set<StateTransition<Config>, StateTransitionHash<Config>, StateTransitionEqual<Config>> transitions_;
 
 	public:
@@ -46,14 +45,7 @@ namespace turing_learning::utm
 		{
 			auto found = transitions_.find(tape_state);
 
-			if (found == transitions_.end())
-			{
-				return nullptr;
-			}
-			else
-			{
-				return &*found;
-			}
+			return found == transitions_.end() ? nullptr : &*found;
 		}
 
 		// less efficient but not dangerous. State transition may be saved elsewhere

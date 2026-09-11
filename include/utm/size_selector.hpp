@@ -4,8 +4,7 @@
 
 namespace turing_learning::utm
 {
-	// unsigned number capable of housing Num distinct values. Max value would be Num - 1
-	template <uint64_t Num, bool Bit8 = (Num <= 256), bool Bit16 = (Num <= 65536), bool Bit32 = (Num <= 4294967296)>
+	template <uint64_t Num, bool Bit8 = (Num < 256), bool Bit16 = (Num < 65536), bool Bit32 = (Num < 4294967296)>
 	struct SizeSelector;
 
 	template <uint64_t num>
