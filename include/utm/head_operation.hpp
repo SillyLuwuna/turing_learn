@@ -8,9 +8,13 @@ namespace turing_learning::utm
 	enum HeadOperation : uint8_t // should be max 2 bits
 	{
 		Left,
-		Right,
 		NOP,
+		Right,
 		NUM_OPERATIONS
+		// Left = -1,
+		// NOP = 0,
+		// Right = 1,
+		// NUM_OPERATIONS = 3
 	};
 
 	struct HeadOperationConversion

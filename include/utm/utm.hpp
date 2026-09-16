@@ -18,6 +18,7 @@ namespace turing_learning::utm
 		using State = typename Config::State;
 
 		static constexpr uint64_t max_iterations_ = Config::max_iterations;
+		static constexpr bool unsafe_step = Config::unsafe_step;
 
 		const Program<Config>& program_;
 		Memory<Config>& memory_;
@@ -35,37 +36,50 @@ namespace turing_learning::utm
 
 		constexpr void step()
 		{
-			if (exit_code_ != ExitCode::None) return;
+			if constexpr (!unsafe_step)
+			{
+				if (exit_code_ != ExitCode::None) return;
+			}
 
 			TapeState tape_state = memory_.get_tape_state();
 
-			if (tape_state.core.state == Config::terminal_state)
+			if constexpr (!unsafe_step)
 			{
-				exit_code_ = ExitCode::Finished;
-				return;
+				if (tape_state.core.state == Config::terminal_state)
+				{
+					exit_code_ = ExitCode::Finished;
+					return;
+				}
 			}
 
 			const StateTransition<Config>* transition = program_.get_transition_ptr(tape_state);
 
-			if (transition == nullptr)
+			if constexpr (!unsafe_step)
 			{
-				exit_code_ = ExitCode::UnknownTransition;
-				return;
+				if (transition == nullptr)
+				{
+					exit_code_ = ExitCode::UnknownTransition;
+					return;
+				}
 			}
 
 			memory_.apply(*transition);
 
-			if (memory_.is_corrupted())
+			if constexpr (!unsafe_step)
 			{
-				exit_code_ = ExitCode::MemoryCorrupted;
-				return;
+				if (memory_.is_corrupted())
+				{
+					exit_code_ = ExitCode::MemoryCorrupted;
+					return;
+				}
 			}
 		}
 
 		constexpr void run()
 		{
 			cycle_count_ = 0;
-			while ((exit_code_ == ExitCode::None) && (cycle_count_ < max_iterations_))
+			// while ((exit_code_ == ExitCode::None) && (cycle_count_ < max_iterations_))
+			while (cycle_count_ < max_iterations_)
 			{
 				step();
 				cycle_count_++;

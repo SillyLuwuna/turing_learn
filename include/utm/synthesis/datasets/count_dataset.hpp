@@ -27,6 +27,13 @@ namespace turing_learning::utm::synthesis::datasets
 		static constexpr NumTapesType num_tapes = Config::num_tapes;
 		static constexpr NumHeadsType num_heads = Config::num_heads;
 
+
+		// PERF should be static/constexpr
+		const Program<Config> solution = gen_solution();
+		random::RandomEngine& rng_;
+		uint64_t max_len_;
+
+	public:
 		static constexpr Program<Config> gen_solution()
 		{
 			Program<Config> solution;
@@ -142,12 +149,6 @@ namespace turing_learning::utm::synthesis::datasets
 			return solution;
 		}
 
-		// PERF should be static/constexpr
-		const Program<Config> solution = gen_solution();
-		random::RandomEngine& rng_;
-		uint64_t max_len_;
-
-	public:
 		CountDataset(random::RandomEngine& rng, uint64_t max_len) :
 			rng_(rng),
 			max_len_(max_len)
@@ -183,6 +184,8 @@ namespace turing_learning::utm::synthesis::datasets
 
 		Dataset<Config> gen_dataset(uint64_t num_entries)
 		{
+			// PERF VERY INEFFICIENT
+			// FIX
 			Dataset<Config> dataset;
 
 			for (uint64_t i = 0; i < num_entries; i++)

@@ -554,7 +554,8 @@ namespace turing_learning::containers
 				// std::memcpy(obj, bit_chunks_ + obj_start_idx, true_obj_bytes);
 				// return *reinterpret_cast<T*>(obj);
 
-				return *const_cast<Container*>(bit_chunks_ + obj_start_idx);
+				// return *const_cast<Container*>(bit_chunks_ + obj_start_idx);
+				return (T)*const_cast<Container*>(bit_chunks_ + obj_start_idx);
 			}
 
 			uint64_t start_byte = obj_start_idx * len_bytes;

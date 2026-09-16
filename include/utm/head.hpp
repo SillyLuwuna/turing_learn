@@ -52,6 +52,11 @@ namespace turing_learning::utm
 			pos_++;
 		}
 
+		inline constexpr void move(int64_t dir)
+		{
+			pos_ += dir;
+		}
+
 		inline constexpr Symbol read() const
 		{
 			return tape_.read(pos_);

@@ -47,17 +47,29 @@ namespace turing_learning::utm
 
 		inline constexpr void move_head(Head<Config>& head, HeadOperation operation)
 		{
+			// NOTE do NOT: instead of a switch case, to move it, just add a
+			// signed value, i.e. -1 for left and +1 for right, 0 for noop.
+			// because of branch prediction, the switch case is actually much faster
+			// PERF however, for optimizations that include moving more than one
+			// space at a time, it might be better with the first approach
+
+			// head.move(operation);
+
+			// PERF make a flag to define if memory corrupted should be checked for or not
+
 			switch (operation)
 			{
 				case HeadOperation::Left:
-					if (head.is_at_left_limit()) corrupted_ = true;
-					else head.move_left();
+					// if (head.is_at_left_limit()) corrupted_ = true;
+					// else head.move_left();
+					head.move_left();
 
 					break;
 
 				case HeadOperation::Right:
-					if (head.is_at_right_limit()) corrupted_ = true;
-					else head.move_right();
+					// if (head.is_at_right_limit()) corrupted_ = true;
+					// else head.move_right();
+					head.move_right();
 
 					break;
 
@@ -156,7 +168,7 @@ namespace turing_learning::utm
 			return corrupted_;
 		}
 
-		std::string to_str() const
+		inline constexpr std::string to_str() const
 		{
 			std::string str;
 

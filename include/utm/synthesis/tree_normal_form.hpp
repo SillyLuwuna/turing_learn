@@ -192,7 +192,7 @@ namespace turing_learning::utm::synthesis
 
 			if (total_error < best_total_error_)
 			{
-				// std::cout << "new best: " << std::to_string(total_error) << "\n";
+				std::cout << "new best: " << std::to_string(total_error) << "\n";
 				best_total_error_ = total_error;
 				best_tm_ = parent;
 			}

@@ -35,6 +35,7 @@ namespace turing_learning::utm
 
 		static constexpr NumHeadsType num_heads = Config::num_heads;
 
+		// TODO change name "core" or code architecture, ugly code
 		TapeStateCore<Config> core;
 
 		inline constexpr uint64_t hash() const

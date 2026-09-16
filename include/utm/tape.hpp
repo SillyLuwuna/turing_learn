@@ -21,13 +21,21 @@ namespace turing_learning::utm
 
 		static constexpr TapeLenType tape_len = Config::tape_len;
 		static constexpr uint64_t symbol_bits = Config::symbol_bits;
+		static constexpr bool align_tape = Config::align_tape;
 
 		// PERF could be allocated as needed, for memory efficiency
 		// PERF for heap allocation, there has to be a memory pool that distributes the contiguous bits
 		// else, each malloc becomes extremely expensive
 
+		using contiguous_bits_type = std::conditional_t<
+			align_tape,
+			ContiguousBits<Symbol, Symbol, sizeof(Symbol) * 8, tape_len>,
+			ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>
+		>;
+		contiguous_bits_type tape_;
+
 		// std::unique_ptr<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>> tape_;
-		ContiguousBits<uint8_t, uint8_t, symbol_bits, tape_len> tape_;
+		// ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len> tape_;
 		// std::unique_ptr<uint8_t[]> tape_;
 		// Symbol tape_[tape_len];
 
@@ -160,7 +168,10 @@ namespace turing_learning::utm
 
 		inline constexpr void write(TapeLenType idx, Symbol symbol)
 		{
+			// PERF add flag for bounds check
+
 			update_bounds(idx, idx, symbol);
+
 			// tape_->rewrite_at(idx, symbol);
 			tape_.rewrite_at(idx, symbol);
 			// tape_[idx] = symbol;

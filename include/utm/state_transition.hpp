@@ -27,7 +27,8 @@ namespace turing_learning::utm
 		TapeState<Config> trigger_state;
 		Symbol head_writes[num_heads];
 		State target_state;
-		ContiguousBits<uint8_t, uint8_t, 2, num_tapes> head_operations;
+		ContiguousBits<HeadOperation, uint8_t, 2, num_tapes> head_operations;
+		// ContiguousBits<HeadOperation, uint8_t, sizeof(HeadOperation) * 8, num_tapes> head_operations;
 
 		inline constexpr void set_head_operation(NumTapesType tape, HeadOperation operation)
 		{
@@ -36,7 +37,7 @@ namespace turing_learning::utm
 
 		inline constexpr HeadOperation get_head_operation(NumTapesType tape) const
 		{
-			return (HeadOperation)head_operations.at(tape);
+			return head_operations.at(tape);
 		}
 
 		std::string to_str() const
