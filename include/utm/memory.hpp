@@ -22,6 +22,8 @@ namespace turing_learning::utm
 		static constexpr NumTapesType num_tapes = Config::num_tapes;
 		static constexpr NumHeadsType num_heads = Config::num_heads;
 
+		static constexpr bool unsafe_step = Config::unsafe_step;
+
 		Tape<Config> tapes_[num_tapes];
 		Head<Config> heads_[num_heads];
 		NumTapesType head_target_tape_idx_[num_heads];
@@ -60,15 +62,27 @@ namespace turing_learning::utm
 			switch (operation)
 			{
 				case HeadOperation::Left:
-					// if (head.is_at_left_limit()) corrupted_ = true;
-					// else head.move_left();
+					if constexpr(!unsafe_step)
+					{
+						if (head.is_at_left_limit())
+						{
+							corrupted_ = true;
+							return;
+						}
+					}
 					head.move_left();
 
 					break;
 
 				case HeadOperation::Right:
-					// if (head.is_at_right_limit()) corrupted_ = true;
-					// else head.move_right();
+					if constexpr(!unsafe_step)
+					{
+						if (head.is_at_right_limit())
+						{
+							corrupted_ = true;
+							return;
+						}
+					}
 					head.move_right();
 
 					break;

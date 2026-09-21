@@ -97,8 +97,8 @@ namespace turing_learning::utm::synthesis
 			Program<Config> result = origin;
 
 			StateTransition<Config> transition;
-			transition.trigger_state.state = rng_stream_.next64(num_states_);
-			transition.target_state = rng_stream_.next64(num_states_);
+			transition.trigger_state.state = rng_stream_.next64(num_states_ + 1);
+			transition.target_state = rng_stream_.next64(num_states_ + 1);
 			for (uint64_t i = 0; i < num_heads_; i++)
 			{
 				transition.trigger_state.head_reads[i] = rng_stream_.next64(num_symbols_);

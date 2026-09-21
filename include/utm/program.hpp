@@ -31,21 +31,16 @@ namespace turing_learning::utm
 		// PERF saves too much info (trigger states) which are alread encoded in the array
 		// PERF SIMD using different arrays for each component
 
-		// StateTransition<Config> transitions_[num_states * step_size_];
-		StateTransition<Config> transitions_[6 * 3];
-		// StateTransition<Config> transitions_[6][3];
-		// StateTransition<Config> transitions_[num_states][num_symbols];
-		// NDArray<StateTransition<Config>, num_symbols, num_heads> transitions_[num_states];
-		// uint8_t valid_transitions_
+		StateTransition<Config> transitions_[num_states * step_size_];
+		// PERF only use valid_transitions_ in safe mode
+		bool valid_transitions_[num_states * step_size_] {};
 
 		// PERF array instead of hashtable
 		// std::unordered_set<StateTransition<Config>, StateTransitionHash<Config>, StateTransitionEqual<Config>> transitions_;
 
 		static inline constexpr uint64_t get_idx(const TapeStateCore<Config>& state)
 		{
-			// TODO check if code is correct
-
-			uint64_t idx = state.state * step_size_;
+			uint64_t idx = (state.state - 1) * step_size_; // TODO - 1 is scuffed and slow, relies on 0 being terminal state, maybe just make num_states + 1?
 			for (uint64_t i = 0; i < num_heads; i++)
 			{
 				// PERF can be done faster if done in reverse order, each time multiplying the base to obtain the power of it
@@ -57,64 +52,37 @@ namespace turing_learning::utm
 	public:
 		inline constexpr void add_transition(StateTransition<Config>&& transition)
 		{
-			// transitions_[transition.trigger_state.core.state][transition.trigger_state.core.head_reads[0]] = transition;
-			transitions_[get_idx(transition.trigger_state.core)] = transition;
-			// transitions_.emplace(std::move(transition));
+			uint64_t idx = get_idx(transition.trigger_state.core);
+			transitions_[idx] = transition;
+			valid_transitions_[idx] = 1;
 		}
 
 		inline constexpr void remove_transition(const StateTransition<Config>& transition)
 		{
-			// FIXME
-
-			// transitions_.erase(transition);
+			valid_transitions_[get_idx(transition.trigger_state.core)] = 0;
 		}
 
 		inline constexpr void overwrite_transition(StateTransition<Config>&& transition)
 		{
-			// FIXME
-
-			// auto node = transitions_.extract(transition);
-			// if (!node.empty())
-			// {
-			// 	node.value() = std::move(transition);
-			// 	transitions_.insert(std::move(node));
-			// }
-			// else
-			// {
-			// 	transitions_.emplace(std::move(transition));
-			// }
+			add_transition(std::move(transition));
 		}
 
 		// efficient but dangerous. May become invalid after an insert/remove
 		inline const StateTransition<Config>* get_transition_ptr(const TapeState<Config>& tape_state) const
 		{
-			// FIXME
-
-			// return &transitions_[tape_state.core.state][tape_state.core.head_reads[0]];
-			return transitions_ + get_idx(tape_state.core);
-
-			// auto found = transitions_.find(tape_state);
-			//
-			// return found == transitions_.end() ? nullptr : &*found;
+			uint64_t idx = get_idx(tape_state.core);
+			return valid_transitions_[idx] ? (transitions_ + idx) : nullptr;
 		}
 
 		// less efficient but not dangerous. State transition may be saved elsewhere
 		inline std::optional<StateTransition<Config>> get_transition(const TapeState<Config>& tape_state) const
 		{
-			// FIXME
-
-			return nullptr;
-
-			// return *get_transition_ptr(tape_state);
+			return *get_transition_ptr(tape_state);
 		}
 
 		uint64_t num_bytes() const override
 		{
-			// FIXME
-
 			return sizeof(*this);
-
-			// return sizeof(*this) + transitions_.size() * sizeof(StateTransition<Config>);
 		}
 
 		std::string to_str() const

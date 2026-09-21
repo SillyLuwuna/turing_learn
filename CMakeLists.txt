@@ -45,7 +45,7 @@ target_compile_options(${BIN} PRIVATE
 	# -ffast-math
 	# -fno-inline
 	# -fno-omit-frame-pointer
-	# -g
+	-g
 )
 
 if (BUILD_TESTS)
