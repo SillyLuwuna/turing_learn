@@ -18,6 +18,7 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_DIR})
 set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_DIR})
 
 project(${PROJECT})
+# project(${PROJECT} C CXX)
 
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS ${SRC_DIR}/*.cpp)
 list(FILTER SRC_FILES EXCLUDE REGEX ".*${MAIN}$")
@@ -45,7 +46,17 @@ target_compile_options(${BIN} PRIVATE
 	# -ffast-math
 	# -fno-inline
 	# -fno-omit-frame-pointer
-	-g
+	# -g
+)
+
+enable_language(C)
+add_subdirectory(third_party/gmp-6.3.0)
+add_subdirectory(third_party/mpfr-4.2.2)
+
+target_link_libraries(${LIB} PUBLIC
+	GMP::GMPXX
+	# GMP::GMP
+	MPFR::MPFR
 )
 
 if (BUILD_TESTS)
@@ -54,9 +65,13 @@ if (BUILD_TESTS)
 
 	target_compile_definitions(${BIN}_test PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
 
-	add_subdirectory(lib/doctest)
+	add_subdirectory(third_party/doctest)
+	add_subdirectory(third_party/gmp-6.3.0)
+
 	target_link_libraries(${BIN}_test PUBLIC
 		doctest
+		GMP::GMPXX
+		GMP::GMP
 	)
 
 	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${TEST_DIR}/*.cpp)

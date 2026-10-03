@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <gmpxx.h>
+#include <mpfr.h>
 #include "benchmark/benchmark.hpp"
 #include "benchmark/timer.hpp"
 #include "random/mt19937_64.hpp"
@@ -32,13 +34,13 @@ int main()
 
 	const uint64_t num_symbols_effective = 3;
 	// constexpr uint64_t max_dataset_entry_len = 10000;
-	const uint64_t max_dataset_entry_len = 100; // WARN THIS
+	const uint64_t max_dataset_entry_len = 10; // WARN THIS
 	// const uint64_t train_dataset_len = 1;
-	const uint64_t train_dataset_len = 50; // WARN THIS
+	const uint64_t train_dataset_len = 3; // WARN THIS
 	// const uint64_t test_dataset_len = 1;
 	// const uint64_t max_solution_steps = 1000000;
-	const uint64_t max_solution_steps = 100000; // <- this one for benchmarking on ~0.68s -> ~0.35s
-	// const uint64_t max_solution_steps = 10000000000;
+	// const uint64_t max_solution_steps = 100000; // <- this one for benchmarking on ~0.68s -> ~0.35s -> ~0.33s
+	const uint64_t max_solution_steps = 10000000000;
 
 	// treat as maximums
 	constexpr uint64_t num_heads = 1;

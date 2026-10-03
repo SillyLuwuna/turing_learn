@@ -24,7 +24,7 @@ namespace turing_learning::utm
 		static constexpr TapeLenType tape_len = Config::tape_len;
 		static constexpr NumTapesType num_tapes = Config::num_tapes;
 		static constexpr NumHeadsType num_heads = Config::num_heads;
-		static constexpr State num_states = Config::num_states;
+		static constexpr State num_states = Config::num_states + 1; // FIX kinda scuffed
 		static constexpr Symbol num_symbols = Config::num_symbols;
 
 		static constexpr uint64_t step_size_ = Math::fast_pow(num_symbols, num_heads);
@@ -40,7 +40,7 @@ namespace turing_learning::utm
 
 		static inline constexpr uint64_t get_idx(const TapeStateCore<Config>& state)
 		{
-			uint64_t idx = (state.state - 1) * step_size_; // TODO - 1 is scuffed and slow, relies on 0 being terminal state, maybe just make num_states + 1?
+			uint64_t idx = state.state * step_size_;
 			for (uint64_t i = 0; i < num_heads; i++)
 			{
 				// PERF can be done faster if done in reverse order, each time multiplying the base to obtain the power of it
@@ -54,7 +54,7 @@ namespace turing_learning::utm
 		{
 			uint64_t idx = get_idx(transition.trigger_state.core);
 			transitions_[idx] = transition;
-			valid_transitions_[idx] = 1;
+			valid_transitions_[idx] = true;
 		}
 
 		inline constexpr void remove_transition(const StateTransition<Config>& transition)
@@ -89,9 +89,12 @@ namespace turing_learning::utm
 		{
 			std::string result;
 
-			for (const StateTransition<Config>& transition : transitions_)
+			for (uint64_t i = 0; i < num_states * step_size_; i++)
 			{
-				result += "\t" + transition.to_str() + "\n";
+				if (valid_transitions_[i])
+				{
+					result += "\t" + transitions_[i].to_str() + "\n";
+				}
 			}
 
 			return result;

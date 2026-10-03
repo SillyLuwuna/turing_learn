@@ -45,7 +45,7 @@ namespace turing_learning::utm
 			std::string str;
 
 			str += "state[";
-			str += std::to_string(trigger_state.state);
+			str += std::to_string(trigger_state.core.state);
 			str += "->";
 			str += std::to_string(target_state);
 			str += "]";
@@ -55,7 +55,7 @@ namespace turing_learning::utm
 				str += " head";
 				str += std::to_string(i);
 				str += "(";
-				str += SymbolBuilder<Config>::to_str(trigger_state.head_reads[i]);
+				str += SymbolBuilder<Config>::to_str(trigger_state.core.head_reads[i]);
 				str += "->";
 				str += SymbolBuilder<Config>::to_str(head_writes[i]);
 				str += ", ";
