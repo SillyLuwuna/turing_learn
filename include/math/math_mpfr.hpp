@@ -8,7 +8,7 @@ namespace turing_learning
 {
 	struct MathMpfr
 	{
-		static inline constexpr std::string to_str(const mpfr_t x, int decimals)
+		static inline std::string to_str(const mpfr_t x, int decimals)
 		{
 			char* buf = nullptr;
 			int n = mpfr_asprintf(&buf, "%.*Rf", decimals, x);
@@ -18,7 +18,7 @@ namespace turing_learning
 			return str;
 		}
 
-		static inline constexpr std::string to_str_scientific(const mpfr_t x, int decimals)
+		static inline std::string to_str_scientific(const mpfr_t x, int decimals)
 		{
 			char* buf = nullptr;
 			int n = mpfr_asprintf(&buf, "%.*Re", decimals, x);
@@ -28,7 +28,7 @@ namespace turing_learning
 			return str;
 		}
 
-		static inline constexpr std::string to_str_int(const mpfr_t x)
+		static inline std::string to_str_int(const mpfr_t x)
 		{
 			return to_str(x, 0);
 		}

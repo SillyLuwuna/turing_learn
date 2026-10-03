@@ -8,6 +8,7 @@
 #include "math/math_mpfr.hpp"
 #include <chrono>
 #include <thread>
+#include <cassert>
 
 using namespace std::chrono_literals;
 using namespace std::chrono;
@@ -87,6 +88,8 @@ namespace turing_learning::utm::synthesis
 				return;
 			}
 
+			if (head >= std::size(state_transition.head_writes)) __builtin_unreachable(); // to appease compiler
+
 			for (Symbol symbol = 0; symbol < num_symbols_; symbol++)
 			{
 				state_transition.head_writes[head] = symbol; // PERF use state_transition directly in loop?
@@ -160,8 +163,8 @@ namespace turing_learning::utm::synthesis
 			uint64_t elapsed_us = duration_cast<nanoseconds>(elapsed).count();
 
 			// PERF reuse variables
-			mpfr_t known_total, tmp, progress, speed_raw, speed, efficiency, efficiency_inv, estimated;
-			mpfr_inits2(bit_precision_, known_total, tmp, progress, speed_raw, speed, efficiency, efficiency_inv, estimated, (mpfr_ptr)0);
+			mpfr_t known_total, tmp, progress, speed_raw, speed, efficiency, waste, estimated;
+			mpfr_inits2(bit_precision_, known_total, tmp, progress, speed_raw, speed, efficiency, waste, estimated, (mpfr_ptr)0);
 
 
 			mpfr_ui_pow_ui(known_total, total, individual_progress_.size(), MPFR_RNDN);
@@ -182,8 +185,10 @@ namespace turing_learning::utm::synthesis
 			mpfr_div_ui(speed_raw, tm_simulated_count_, elapsed_us, MPFR_RNDN);
 			mpfr_mul_ui(speed_raw, speed_raw, 1000000000, MPFR_RNDN);
 
-			mpfr_div(efficiency_inv, speed_raw, speed, MPFR_RNDN);
-			mpfr_ui_sub(efficiency, 1, efficiency_inv, MPFR_RNDN);
+			mpfr_div(waste, speed_raw, speed, MPFR_RNDN);
+			mpfr_ui_sub(efficiency, 1, waste, MPFR_RNDN);
+			mpfr_mul_ui(waste, waste, 100, MPFR_RNDN);
+			mpfr_mul_ui(efficiency, efficiency, 100, MPFR_RNDN);
 
 			mpfr_sub(tmp, known_total, tm_static_count_, MPFR_RNDN);
 			mpfr_div(estimated, tmp, speed, MPFR_RNDN);
@@ -195,7 +200,7 @@ namespace turing_learning::utm::synthesis
 			std::cout << "speed (raw):\t" << MathMpfr::to_str(speed_raw, 0) << " (" << MathMpfr::to_str_scientific(speed_raw, 0) << ") TMs/s\n";
 			// std::cout << "efficiency:\t" << MathMpfr::to_str(efficiency, 32) << " (1 - " << MathMpfr::to_str_scientific(efficiency_inv, 32) << ") %\n";
 			std::cout << "efficiency:\t" << MathMpfr::to_str(efficiency, 32) << " %\n";
-			std::cout << "efficiency_inv:\t" << MathMpfr::to_str_scientific(efficiency_inv, 32) << " %\n";
+			std::cout << "waste:\t\t" << MathMpfr::to_str_scientific(waste, 5) << " %\n";
 			std::cout << "estimated:\t" << MathMpfr::to_str(estimated, 0) << " s | ";
 			mpfr_div_ui(estimated, estimated, 60, MPFR_RNDN);
 			std::cout << MathMpfr::to_str(estimated, 0) << " m | ";
@@ -218,7 +223,7 @@ namespace turing_learning::utm::synthesis
 
 			mpfr_set_ui(tm_simulated_count_, 0, MPFR_RNDN);
 
-			mpfr_clears(known_total, tmp, progress, speed_raw, speed, efficiency, efficiency_inv, estimated, (mpfr_ptr)0);
+			mpfr_clears(known_total, tmp, progress, speed_raw, speed, efficiency, waste, estimated, (mpfr_ptr)0);
 		}
 
 		// PERF don't use recursion

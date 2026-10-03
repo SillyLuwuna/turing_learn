@@ -62,7 +62,7 @@ int main()
 	// TODO way to calculate required max_iterations automatically
 
 	CountDataset<InstanceConfig> count_dataset(rng, max_dataset_entry_len);
-	Dataset<InstanceConfig> train_dataset = count_dataset.gen_dataset(train_dataset_len);
+	Dataset<InstanceConfig> train_dataset = count_dataset.gen_dataset(train_dataset_len); // PERF extremely slow
 	// Dataset<InstanceConfig> test_dataset = count_dataset.gen_dataset(test_dataset_len);
 
 	// BENCHMARK COMPARISON
