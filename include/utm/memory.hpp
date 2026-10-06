@@ -1,6 +1,6 @@
 #pragma once
 
-#include "benchmark/byte_measurable.hpp"
+#include <fluff/benchmark>
 #include "utm/head.hpp"
 #include "utm/state_transition.hpp"
 #include "utm/tape_state.hpp"
@@ -9,7 +9,7 @@
 namespace turing_learning::utm
 {
 	template<typename Config>
-	class Memory : benchmark::ByteMeasurable
+	class Memory : fluff::benchmark::ByteMeasurable
 	{
 	private:
 		using Symbol = typename Config::Symbol;

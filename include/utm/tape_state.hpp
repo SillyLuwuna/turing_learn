@@ -1,7 +1,7 @@
 #pragma once
 
+#include <fluff/hashing>
 #include "utm/symbol.hpp"
-#include "hashing/hasher.hpp"
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -63,7 +63,7 @@ namespace turing_learning::utm
 				// i.e. 4 * uint8_t = 1 * uint32_t
 				for (NumHeadsType i = 0; i < num_heads; i++)
 				{
-					Hasher::hash_combine(hash_cache_, core.head_reads[i]);
+					fluff::Hasher::hash_combine(hash_cache_, core.head_reads[i]);
 				}
 			}
 			return hash_cache_;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utm/size_selector.hpp"
+#include <fluff/memory>
 #include <cmath>
 #include <cstdint>
 
@@ -20,11 +20,11 @@ namespace turing_learning::utm
 	struct Config
 	{
 		// -1 because: for i.e. 5 heads, we need at most the number 4, because 0 is included
-		using NumHeadsType = typename SizeSelector<NumHeads>::type;
-		using NumTapesType = typename SizeSelector<NumTapes>::type;
-		using TapeLenType = typename SizeSelector<TapeLen>::type;
-		using Symbol = typename SizeSelector<NumSymbols>::type;
-		using State = typename SizeSelector<NumStates>::type;
+		using NumHeadsType = typename fluff::SizeSelector<NumHeads>::type;
+		using NumTapesType = typename fluff::SizeSelector<NumTapes>::type;
+		using TapeLenType = typename fluff::SizeSelector<TapeLen>::type;
+		using Symbol = typename fluff::SizeSelector<NumSymbols>::type;
+		using State = typename fluff::SizeSelector<NumStates>::type;
 
 		// FIXME NumHeads will be greater than NumHeadsType can support, and same for the others
 		// this requires fixing in every other class that uses this. Make them just use the original

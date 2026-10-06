@@ -1,19 +1,15 @@
 #pragma once
 
-#include "benchmark/byte_measurable.hpp"
+#include <fluff/containers>
+#include <fluff/benchmark>
 #include "utm/symbol.hpp"
 #include <cstdint>
-#include <iostream>
-#include <memory>
 #include <vector>
-#include "containers/contiguous_bits.hpp"
 
 namespace turing_learning::utm
 {
-	using namespace turing_learning::containers;
-
 	template<typename Config>
-	class Tape : benchmark::ByteMeasurable
+	class Tape : fluff::benchmark::ByteMeasurable
 	{
 	private:
 		using TapeLenType = typename Config::TapeLenType;
@@ -29,8 +25,8 @@ namespace turing_learning::utm
 
 		using contiguous_bits_type = std::conditional_t<
 			align_tape,
-			ContiguousBits<Symbol, Symbol, sizeof(Symbol) * 8, tape_len>,
-			ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>
+			fluff::ContiguousBits<Symbol, Symbol, sizeof(Symbol) * 8, tape_len>,
+			fluff::ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>
 		>;
 		contiguous_bits_type tape_;
 

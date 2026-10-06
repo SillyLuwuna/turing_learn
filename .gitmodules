@@ -1,3 +1,6 @@
 [submodule "third_party/doctest"]
 	path = third_party/doctest
 	url = https://github.com/doctest/doctest
+[submodule "third_party/fluff"]
+	path = third_party/fluff
+	url = git@github.com:SillyLuwuna/fluff.git

@@ -49,14 +49,12 @@ target_compile_options(${BIN} PRIVATE
 	# -g
 )
 
-enable_language(C)
-add_subdirectory(third_party/gmp-6.3.0)
-add_subdirectory(third_party/mpfr-4.2.2)
+set(USE_MPFR ON CACHE BOOL "" FORCE)
+
+add_subdirectory(third_party/fluff)
 
 target_link_libraries(${LIB} PUBLIC
-	GMP::GMPXX
-	# GMP::GMP
-	MPFR::MPFR
+	fluff
 )
 
 if (BUILD_TESTS)

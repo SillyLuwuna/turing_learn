@@ -4,15 +4,14 @@
 #include <optional>
 #include <unordered_set>
 
-#include "benchmark/byte_measurable.hpp"
-#include "containers/nd_array.hpp"
+#include <fluff/benchmark>
+#include <fluff/math>
 #include "utm/state_transition.hpp"
-#include "math/math.hpp"
 
 namespace turing_learning::utm
 {
 	template<typename Config>
-	class Program : public benchmark::ByteMeasurable
+	class Program : public fluff::benchmark::ByteMeasurable
 	{
 	private:
 		using Symbol = typename Config::Symbol;
@@ -27,7 +26,7 @@ namespace turing_learning::utm
 		static constexpr State num_states = Config::num_states + 1; // FIX kinda scuffed
 		static constexpr Symbol num_symbols = Config::num_symbols;
 
-		static constexpr uint64_t step_size_ = Math::fast_pow(num_symbols, num_heads);
+		static constexpr uint64_t step_size_ = fluff::Math::fast_pow(num_symbols, num_heads);
 		// PERF saves too much info (trigger states) which are alread encoded in the array
 		// PERF SIMD using different arrays for each component
 
@@ -44,7 +43,7 @@ namespace turing_learning::utm
 			for (uint64_t i = 0; i < num_heads; i++)
 			{
 				// PERF can be done faster if done in reverse order, each time multiplying the base to obtain the power of it
-				idx += state.head_reads[i] * Math::fast_pow(num_symbols, num_heads - i - 1);
+				idx += state.head_reads[i] * fluff::Math::fast_pow(num_symbols, num_heads - i - 1);
 			}
 			return idx;
 		}

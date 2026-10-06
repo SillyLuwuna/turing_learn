@@ -2,17 +2,19 @@
 
 #include <cstdint>
 
-#include "benchmark/byte_measurable.hpp"
+#include <fluff/benchmark>
 #include "utm/exit_code.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
 #include "utm/execution_results.hpp"
-#include "utm/synthesis/dataset.hpp"
+#include "datasets/dataset.hpp"
+
+using namespace turing_learning::datasets;
 
 namespace turing_learning::utm
 {
 	template<typename Config>
-	class Utm : public benchmark::ByteMeasurable
+	class Utm : public fluff::benchmark::ByteMeasurable
 	{
 	private:
 		using State = typename Config::State;
@@ -91,7 +93,7 @@ namespace turing_learning::utm
 			}
 		}
 
-		static constexpr std::vector<ExecutionResults<Config>> run_dataset(const Program<Config>& program, const synthesis::Dataset<Config>& dataset)
+		static constexpr std::vector<ExecutionResults<Config>> run_dataset(const Program<Config>& program, const Dataset<Config>& dataset)
 		{
 			std::vector<ExecutionResults<Config>> all_stats;
 			all_stats.reserve(dataset.size());

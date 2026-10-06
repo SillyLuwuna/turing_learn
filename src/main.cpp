@@ -1,36 +1,34 @@
 #include <iostream>
 
-#include <gmpxx.h>
-#include <mpfr.h>
-#include "benchmark/benchmark.hpp"
-#include "benchmark/timer.hpp"
-#include "random/mt19937_64.hpp"
+#include "utm/utm.hpp"
 #include "utm/config.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
 #include "utm/state_transition.hpp"
-#include "utm/synthesis/dataset.hpp"
-#include "utm/synthesis/sim_annealing.hpp"
-#include "utm/synthesis/datasets/count_dataset.hpp"
-#include "utm/synthesis/tree_normal_form.hpp"
-#include "utm/utm.hpp"
-#include "containers/bit_array.hpp"
-#include "containers/contiguous_bits.hpp"
+
+#include "synthesis/sim_annealing.hpp"
+#include "synthesis/tnf/tnf.hpp"
+
+#include "datasets/count_dataset.hpp"
+#include "datasets/dataset.hpp"
+
+#include <fluff/containers>
+#include <fluff/containers>
 
 using namespace turing_learning;
-using namespace turing_learning::containers;
 using namespace turing_learning::utm;
-using namespace turing_learning::utm::synthesis;
-using namespace turing_learning::utm::synthesis::datasets;
-using namespace turing_learning::benchmark;
-using namespace turing_learning::random;
+using namespace turing_learning::synthesis;
+using namespace turing_learning::datasets;
+using namespace turing_learning::synthesis::tnf;
 
+#include <fluff/containers>
 
 int main()
 {
+	fluff::BitArray<uint8_t, 5> owo;
 	const uint64_t seed = 137;
 	std::cout << "seed: " << std::to_string(seed) << "\n";
-	benchmark::Timer::restart();
+	fluff::benchmark::Timer::restart();
 
 	const uint64_t num_symbols_effective = 3;
 	// constexpr uint64_t max_dataset_entry_len = 10000;
@@ -57,7 +55,7 @@ int main()
 	constexpr bool unsafe_step = false;
 	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states, max_iterations, align_tape, unsafe_step>;
 
-	Xoshiro256p rng(seed);
+	fluff::random::Xoshiro256p rng(seed);
 
 	// TODO way to calculate required max_iterations automatically
 
@@ -92,7 +90,7 @@ int main()
 	// Program<InstanceConfig> solution = sim_ann.run(max_solution_steps, train_dataset);
 
 
-	TreeNormalForm<InstanceConfig> tnf(num_symbols_effective, num_heads, num_states);
+	Tnf<InstanceConfig> tnf(num_symbols_effective, num_heads, num_states);
 	Program<InstanceConfig> solution = tnf.run(max_solution_steps, train_dataset);
 
 
@@ -112,7 +110,7 @@ int main()
 	// 	std::cout << "=============================\n";
 	// }
 	// std::cout << "energy_dataset: " << SimulatedAnnealing<InstanceConfig>::energy(results, train_dataset) << "\n";
-	std::cout << "training error: " << TreeNormalForm<InstanceConfig>::error(results, train_dataset) << "\n";
+	std::cout << "training error: " << Tnf<InstanceConfig>::error(results, train_dataset) << "\n";
 
 	// results = Utm<InstanceConfig>::run_dataset(solution, test_dataset);
 	// for (uint64_t i = 0; i < results.size() ; i++)
