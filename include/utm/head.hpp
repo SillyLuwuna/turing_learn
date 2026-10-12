@@ -1,12 +1,11 @@
 #pragma once
 
-#include <cstdint>
-
-#include "utm/symbol.hpp"
 #include "utm/tape.hpp"
 
 namespace turing_learning::utm
 {
+	using namespace fluff::types;
+
 	template<typename Config>
 	class Head
 	{
@@ -52,7 +51,7 @@ namespace turing_learning::utm
 			pos_++;
 		}
 
-		inline constexpr void move(int64_t dir)
+		inline constexpr void move(i64 dir)
 		{
 			pos_ += dir;
 		}

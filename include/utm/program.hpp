@@ -1,8 +1,6 @@
 #pragma once
 
-#include <iostream>
 #include <optional>
-#include <unordered_set>
 
 #include <fluff/benchmark.hpp>
 #include <fluff/math.hpp>
@@ -10,6 +8,8 @@
 
 namespace turing_learning::utm
 {
+	using namespace fluff::types;
+
 	template<typename Config>
 	class Program : public fluff::benchmark::ByteMeasurable
 	{
@@ -26,7 +26,7 @@ namespace turing_learning::utm
 		static constexpr State num_states = Config::num_states + 1; // FIX kinda scuffed
 		static constexpr Symbol num_symbols = Config::num_symbols;
 
-		static constexpr uint64_t step_size_ = fluff::Math::fast_pow(num_symbols, num_heads);
+		static constexpr u64 step_size_ = fluff::math::fast_pow(num_symbols, num_heads);
 		// PERF saves too much info (trigger states) which are alread encoded in the array
 		// PERF SIMD using different arrays for each component
 
@@ -37,13 +37,13 @@ namespace turing_learning::utm
 		// PERF array instead of hashtable
 		// std::unordered_set<StateTransition<Config>, StateTransitionHash<Config>, StateTransitionEqual<Config>> transitions_;
 
-		static inline constexpr uint64_t get_idx(const TapeStateCore<Config>& state)
+		static inline constexpr u64 get_idx(const TapeStateCore<Config>& state)
 		{
-			uint64_t idx = state.state * step_size_;
-			for (uint64_t i = 0; i < num_heads; i++)
+			u64 idx = state.state * step_size_;
+			for (u64 i = 0; i < num_heads; i++)
 			{
 				// PERF can be done faster if done in reverse order, each time multiplying the base to obtain the power of it
-				idx += state.head_reads[i] * fluff::Math::fast_pow(num_symbols, num_heads - i - 1);
+				idx += state.head_reads[i] * fluff::math::fast_pow(num_symbols, num_heads - i - 1);
 			}
 			return idx;
 		}
@@ -51,7 +51,7 @@ namespace turing_learning::utm
 	public:
 		inline constexpr void add_transition(StateTransition<Config>&& transition)
 		{
-			uint64_t idx = get_idx(transition.trigger_state.core);
+			u64 idx = get_idx(transition.trigger_state.core);
 			transitions_[idx] = transition;
 			valid_transitions_[idx] = true;
 		}
@@ -69,7 +69,7 @@ namespace turing_learning::utm
 		// efficient but dangerous. May become invalid after an insert/remove
 		inline const StateTransition<Config>* get_transition_ptr(const TapeState<Config>& tape_state) const
 		{
-			uint64_t idx = get_idx(tape_state.core);
+			u64 idx = get_idx(tape_state.core);
 			return valid_transitions_[idx] ? (transitions_ + idx) : nullptr;
 		}
 
@@ -79,7 +79,7 @@ namespace turing_learning::utm
 			return *get_transition_ptr(tape_state);
 		}
 
-		uint64_t num_bytes() const override
+		u64 num_bytes() const override
 		{
 			return sizeof(*this);
 		}
@@ -88,7 +88,7 @@ namespace turing_learning::utm
 		{
 			std::string result;
 
-			for (uint64_t i = 0; i < num_states * step_size_; i++)
+			for (u64 i = 0; i < num_states * step_size_; i++)
 			{
 				if (valid_transitions_[i])
 				{

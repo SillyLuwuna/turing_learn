@@ -3,11 +3,12 @@
 #include <fluff/containers.hpp>
 #include <fluff/benchmark.hpp>
 #include "utm/symbol.hpp"
-#include <cstdint>
 #include <vector>
 
 namespace turing_learning::utm
 {
+	using namespace fluff::types;
+
 	template<typename Config>
 	class Tape : fluff::benchmark::ByteMeasurable
 	{
@@ -16,7 +17,7 @@ namespace turing_learning::utm
 		using Symbol = typename Config::Symbol;
 
 		static constexpr TapeLenType tape_len = Config::tape_len;
-		static constexpr uint64_t symbol_bits = Config::symbol_bits;
+		static constexpr u64 symbol_bits = Config::symbol_bits;
 		static constexpr bool align_tape = Config::align_tape;
 
 		// PERF could be allocated as needed, for memory efficiency
@@ -26,13 +27,13 @@ namespace turing_learning::utm
 		using contiguous_bits_type = std::conditional_t<
 			align_tape,
 			fluff::ContiguousArray<Symbol, Symbol, sizeof(Symbol) * 8, tape_len>,
-			fluff::ContiguousArray<Symbol, uint8_t, symbol_bits, tape_len>
+			fluff::ContiguousArray<Symbol, u8, symbol_bits, tape_len>
 		>;
 		contiguous_bits_type tape_;
 
-		// std::unique_ptr<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>> tape_;
-		// ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len> tape_;
-		// std::unique_ptr<uint8_t[]> tape_;
+		// std::unique_ptr<ContiguousBits<Symbol, u8, symbol_bits, tape_len>> tape_;
+		// ContiguousBits<Symbol, u8, symbol_bits, tape_len> tape_;
+		// std::unique_ptr<u8[]> tape_;
 		// Symbol tape_[tape_len];
 
 		TapeLenType low_;
@@ -40,8 +41,8 @@ namespace turing_learning::utm
 
 		inline constexpr void init_tape()
 		{
-			// tape_ = std::make_unique<ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>>();
-			// tape_ = std::make_unique<uint8_t[]>(tape_len);
+			// tape_ = std::make_unique<ContiguousBits<Symbol, u8, symbol_bits, tape_len>>();
+			// tape_ = std::make_unique<u8[]>(tape_len);
 			// std::memset(tape_, 0, tape_len * sizeof(Symbol));
 		}
 
@@ -135,14 +136,14 @@ namespace turing_learning::utm
 
 		inline constexpr Tape(const std::vector<Symbol>& initial_symbols) : Tape()
 		{
-			constexpr uint64_t half_idx = tape_len / 2;
-			uint64_t half_len = initial_symbols.size() / 2;
+			constexpr u64 half_idx = tape_len / 2;
+			u64 half_len = initial_symbols.size() / 2;
 
 			low_ = half_idx - half_len;
 			high_ = low_ + initial_symbols.size() - 1;
 
-			uint64_t symbol_idx = 0;
-			for (uint64_t i = low_; i <= high_; i++)
+			u64 symbol_idx = 0;
+			for (u64 i = low_; i <= high_; i++)
 			{
 				// tape_->emplace_at(i, initial_symbols[symbol_idx++]);
 				tape_.emplace_at(i, initial_symbols[symbol_idx++]);
@@ -150,7 +151,7 @@ namespace turing_learning::utm
 			}
 		}
 
-		inline constexpr uint64_t size() const
+		inline constexpr u64 size() const
 		{
 			return high_ - low_ + 1;
 		}
@@ -196,7 +197,7 @@ namespace turing_learning::utm
 			if (this->size() != other.size()) return false;
 
 			// PERF make bit_array cmp for different starts
-			for (uint64_t i = 0; i < this->size(); i++)
+			for (u64 i = 0; i < this->size(); i++)
 			{
 				// if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))
 				if (this->tape_.at(i + this->low_) != other.tape_.at(i + other.low_))
@@ -209,15 +210,15 @@ namespace turing_learning::utm
 			return true;
 		}
 
-		inline constexpr uint64_t cmp(const Tape<Config>& other) const
+		inline constexpr u64 cmp(const Tape<Config>& other) const
 		{
-			uint64_t max_len = std::max(this->size(), other.size());
-			uint64_t min_len = std::min(this->size(), other.size());
+			u64 max_len = std::max(this->size(), other.size());
+			u64 min_len = std::min(this->size(), other.size());
 
-			uint64_t diff = max_len - min_len;
+			u64 diff = max_len - min_len;
 
 			// PERF make bit_array cmp for different starts
-			for (uint64_t i = 0; i < min_len; i++)
+			for (u64 i = 0; i < min_len; i++)
 			{
 				// if (this->tape_->at(i + this->low_) != other.tape_->at(i + other.low_))
 				if (this->tape_.at(i + this->low_) != other.tape_.at(i + other.low_))
@@ -265,7 +266,7 @@ namespace turing_learning::utm
 			return str;
 		}
 
-		uint64_t num_bytes() const override
+		u64 num_bytes() const override
 		{
 			// return sizeof(*this) + sizeof(*tape_);
 			return sizeof(*this) + sizeof(tape_);

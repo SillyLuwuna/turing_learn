@@ -1,16 +1,17 @@
 #pragma once
 
 #include <fluff/random.hpp>
-#include <vector>
+#include <fluff/types.hpp>
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
 #include "utm/utm.hpp"
 #include "datasets/dataset.hpp"
 
-using namespace turing_learning::utm;
-
 namespace turing_learning::datasets
 {
+	using namespace fluff::types;
+	using namespace turing_learning::utm;
+
 	template<typename Config>
 	class CountDataset
 	{
@@ -32,7 +33,7 @@ namespace turing_learning::datasets
 		// PERF should be static/constexpr
 		const Program<Config> solution = gen_solution();
 		fluff::random::RandomEngine& rng_;
-		uint64_t max_len_;
+		u64 max_len_;
 
 	public:
 		static constexpr Program<Config> gen_solution()
@@ -150,7 +151,7 @@ namespace turing_learning::datasets
 			return solution;
 		}
 
-		CountDataset(fluff::random::RandomEngine& rng, uint64_t max_len) :
+		CountDataset(fluff::random::RandomEngine& rng, u64 max_len) :
 			rng_(rng),
 			max_len_(max_len)
 		{ }
@@ -161,11 +162,11 @@ namespace turing_learning::datasets
 		{
 			fluff::random::RandomStream rng_stream(rng_);
 
-			uint64_t start = std::bit_width(max_len_);
-			uint64_t len = rng_stream.next64(max_len_ - start) + 1;
+			u64 start = std::bit_width(max_len_);
+			u64 len = rng_stream.next64(max_len_ - start) + 1;
 
 			Tape<Config> tape = Tape<Config>(start);
-			for (uint64_t i = start; i < (start + len); i++)
+			for (u64 i = start; i < (start + len); i++)
 			{
 				tape.write(i, rng_stream.next64(2) + 1);
 			}
@@ -183,13 +184,13 @@ namespace turing_learning::datasets
 			return std::make_pair<Memory<Config>, Memory<Config>>(std::move(input), std::move(output));
 		}
 
-		Dataset<Config> gen_dataset(uint64_t num_entries)
+		Dataset<Config> gen_dataset(u64 num_entries)
 		{
 			// PERF VERY INEFFICIENT
 			// FIX
 			Dataset<Config> dataset;
 
-			for (uint64_t i = 0; i < num_entries; i++)
+			for (u64 i = 0; i < num_entries; i++)
 			{
 				dataset.add_entry(gen_datapoint());
 			}

@@ -2,15 +2,16 @@
 
 #include "utm/exit_code.hpp"
 #include "utm/memory.hpp"
-#include <cstdint>
 
 namespace turing_learning::utm
 {
+	using namespace fluff::types;
+
 	template<typename Config>
 	struct ExecutionResults
 	{
-		uint64_t cycles_elapsed;
-		uint64_t size_bytes;
+		u64 cycles_elapsed;
+		u64 size_bytes;
 		ExitCode exit_code;
 		Memory<Config> memory;
 	};

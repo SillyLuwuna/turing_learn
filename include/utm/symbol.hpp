@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fluff/memory.hpp>
-#include <cstdint>
 #include <string>
 
 namespace turing_learning::utm

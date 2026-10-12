@@ -2,12 +2,12 @@
 
 #include <fluff/hashing.hpp>
 #include "utm/symbol.hpp"
-#include <cstdint>
 #include <cstring>
-#include <iostream>
 
 namespace turing_learning::utm
 {
+	using namespace fluff::types;
+
 	template<typename Config>
 	struct __attribute__((packed)) TapeStateCore
 	{
@@ -25,7 +25,7 @@ namespace turing_learning::utm
 	struct TapeState
 	{
 	private:
-		mutable uint64_t hash_cache_ = ~0ull;
+		mutable u64 hash_cache_ = ~0ull;
 
 	public:
 
@@ -38,32 +38,32 @@ namespace turing_learning::utm
 		// TODO change name "core" or code architecture, ugly code
 		TapeStateCore<Config> core;
 
-		inline constexpr uint64_t hash() const
+		inline constexpr u64 hash() const
 		{
-			const constexpr uint64_t bytes = sizeof(core.state) + sizeof(core.head_reads);
+			const constexpr u64 bytes = sizeof(core.state) + sizeof(core.head_reads);
 
 			// PERF could be further optimized for combinations with different bytes
 			if constexpr (bytes == 2)
 			{
-				return *(uint16_t*)&core;
+				return *(u16*)&core;
 			}
 			else if constexpr (bytes == 4)
 			{
-				return *(uint32_t*)&core;
+				return *(u32*)&core;
 			}
 			else if constexpr (bytes == 8)
 			{
-				return *(uint64_t*)&core;
+				return *(u64*)&core;
 			}
 
 			if (hash_cache_ == ~0ull)
 			{
 				hash_cache_ = core.state;
 				// PERF could combine multiple head_reads in a smarter approach, by combining several with a cast to a byte multiple
-				// i.e. 4 * uint8_t = 1 * uint32_t
+				// i.e. 4 * u8 = 1 * u32
 				for (NumHeadsType i = 0; i < num_heads; i++)
 				{
-					fluff::Hasher::hash_combine(hash_cache_, core.head_reads[i]);
+					fluff::hashing::hash_combine(hash_cache_, core.head_reads[i]);
 				}
 			}
 			return hash_cache_;
@@ -72,7 +72,7 @@ namespace turing_learning::utm
 		inline constexpr bool operator==(const TapeState<Config>& rhs) const
 		{
 			// can't because padding makes the struct weird
-			const constexpr uint64_t bytes = sizeof(core.state) + sizeof(core.head_reads);
+			const constexpr u64 bytes = sizeof(core.state) + sizeof(core.head_reads);
 			return std::memcmp(&core, &rhs.core, bytes) == 0;
 
 			// if (state != rhs.state) return false;
@@ -86,7 +86,7 @@ namespace turing_learning::utm
 			str += std::to_string(core.state);
 			str += ": [";
 
-			for (int i = 0; i < num_heads; i++)
+			for (NumHeadsType i = 0; i < num_heads; i++)
 			{
 				str += SymbolBuilder<Config>::to_str(core.head_reads[i]);
 			}

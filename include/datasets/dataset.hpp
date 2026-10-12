@@ -3,10 +3,11 @@
 #include <vector>
 #include "utm/memory.hpp"
 
-using namespace turing_learning::utm;
-
 namespace turing_learning::datasets
 {
+	using namespace fluff::types;
+	using namespace turing_learning::utm;
+
 	// TODO implement operator []
 	template<typename Config>
 	class Dataset
@@ -28,17 +29,17 @@ namespace turing_learning::datasets
 			outputs_.emplace_back(std::move(entry_output));
 		}
 
-		inline constexpr const Memory<Config>& get_input(uint64_t idx) const
+		inline constexpr const Memory<Config>& get_input(u64 idx) const
 		{
 			return inputs_[idx];
 		}
 
-		inline constexpr const Memory<Config>& get_output(uint64_t idx) const
+		inline constexpr const Memory<Config>& get_output(u64 idx) const
 		{
 			return outputs_[idx];
 		}
 
-		inline constexpr uint64_t size() const
+		inline constexpr u64 size() const
 		{
 			return inputs_.size();
 		}

@@ -4,10 +4,11 @@
 #include "utm/head.hpp"
 #include "utm/state_transition.hpp"
 #include "utm/tape_state.hpp"
-#include <unordered_set>
 
 namespace turing_learning::utm
 {
+	using namespace fluff::types;
+
 	template<typename Config>
 	class Memory : fluff::benchmark::ByteMeasurable
 	{
@@ -210,10 +211,10 @@ namespace turing_learning::utm
 			return str;
 		}
 
-		uint64_t num_bytes() const override
+		u64 num_bytes() const override
 		{
-			uint64_t tape_bytes = num_tapes * tapes_[0].num_bytes();
-			uint64_t head_bytes = num_heads * sizeof(Head<Config>);
+			u64 tape_bytes = num_tapes * tapes_[0].num_bytes();
+			u64 head_bytes = num_heads * sizeof(Head<Config>);
 			return sizeof(*this) + tape_bytes + head_bytes;
 		}
 
@@ -230,9 +231,9 @@ namespace turing_learning::utm
 			return true;
 		}
 
-		inline constexpr uint64_t cmp(const Memory<Config>& other) const
+		inline constexpr u64 cmp(const Memory<Config>& other) const
 		{
-			uint64_t diff = 0;
+			u64 diff = 0;
 
 			for (TapeLenType i = 0; i < num_tapes; i++)
 			{

@@ -1,22 +1,25 @@
 #pragma once
 
 #include <fluff/extensions/mpfr.hpp>
-// #include <mpfr.h>
 #include <fluff/benchmark.hpp>
+#include <chrono>
+#include <cassert>
+#include <iostream>
+
 #include "utm/program.hpp"
 #include "datasets/dataset.hpp"
 #include "utm/utm.hpp"
-#include <chrono>
-#include <cassert>
 
-using namespace std::chrono_literals;
-using namespace std::chrono;
-
-using namespace turing_learning::utm;
-using namespace fluff::extensions;
 
 namespace turing_learning::synthesis::tnf
 {
+	using namespace std::chrono_literals;
+	using namespace std::chrono;
+
+	using namespace turing_learning::utm;
+	using namespace fluff::extensions;
+	using namespace fluff::types;
+
 	template<typename Config>
 	class Tnf
 	{
@@ -43,19 +46,19 @@ namespace turing_learning::synthesis::tnf
 		State num_states_;
 
 		const Dataset<Config>* dataset_;
-		uint64_t max_iterations_;
-		uint64_t iteration_;
+		u64 max_iterations_;
+		u64 iteration_;
 
 		Program<Config> best_tm_;
-		uint64_t best_total_error_;
+		u64 best_total_error_;
 
-		uint64_t next_new_state_;
+		u64 next_new_state_;
 
-		uint64_t known_state_combinations_num_;
+		u64 known_state_combinations_num_;
 
 		// TODO class/object just for stats
-		uint64_t expansion_depth_;
-		std::vector<uint64_t> individual_progress_;
+		u64 expansion_depth_;
+		std::vector<u64> individual_progress_;
 		mpfr_t tm_simulated_count_;
 		mpfr_t tm_static_count_;
 		time_point<steady_clock, duration<long, std::ratio<1, 1000000000>>> timer_start_;
@@ -95,7 +98,7 @@ namespace turing_learning::synthesis::tnf
 			for (Symbol symbol = 0; symbol < num_symbols_; symbol++)
 			{
 				state_transition.head_writes[head] = symbol; // PERF use state_transition directly in loop?
-				for (HeadOperation head_operation = (HeadOperation)0; head_operation < HeadOperation::NUM_OPERATIONS; head_operation = (HeadOperation)((uint8_t)head_operation + 1))
+				for (HeadOperation head_operation = (HeadOperation)0; head_operation < HeadOperation::NUM_OPERATIONS; head_operation = (HeadOperation)((u8)head_operation + 1))
 				{
 					state_transition.head_operations.rewrite_at(head, head_operation);
 					gen_known_state_combinations(tm_spec, children, state_transition, head + 1);
@@ -103,15 +106,15 @@ namespace turing_learning::synthesis::tnf
 			}
 		}
 
-		inline uint64_t children_num()
+		inline u64 children_num()
 		{
-			return 1 + std::min(next_new_state_, (uint64_t)num_states_) * known_state_combinations_num_;
+			return 1 + std::min(next_new_state_, (u64)num_states_) * known_state_combinations_num_;
 		}
 
 		const std::vector<Program<Config>> gen_children(
 			const Program<Config>& tm_spec,
 			const TapeState<Config>& trigger_state,
-			uint64_t* out_new_state_idx // TODO very scuffed, and inefficient, possibly fixed by generating on demand
+			u64* out_new_state_idx // TODO very scuffed, and inefficient, possibly fixed by generating on demand
 		)
 		{
 			// PERF gen children on demand instead of generating all possibilities at the same time
@@ -159,10 +162,10 @@ namespace turing_learning::synthesis::tnf
 			expansion_depth_--;
 		}
 
-		void print_progress_str(uint64_t total)
+		void print_progress_str(u64 total)
 		{
 			auto elapsed = steady_clock::now() - timer_start_;
-			uint64_t elapsed_us = duration_cast<nanoseconds>(elapsed).count();
+			u64 elapsed_us = duration_cast<nanoseconds>(elapsed).count();
 
 			// PERF reuse variables
 			mpfr_t known_total, tmp, progress, speed_raw, speed, efficiency, waste, estimated;
@@ -171,7 +174,7 @@ namespace turing_learning::synthesis::tnf
 			mpfr_ui_pow_ui(known_total, total, individual_progress_.size(), MPFR_RNDN);
 
 			mpfr_set_ui(tm_static_count_, 0, MPFR_RNDN);
-			for (uint64_t i = 0; i < individual_progress_.size(); i++)
+			for (u64 i = 0; i < individual_progress_.size(); i++)
 			{
 				mpfr_ui_pow_ui(tmp, total, individual_progress_.size() - i - 1, MPFR_RNDN);
 				mpfr_mul_ui(tmp, tmp, individual_progress_[i], MPFR_RNDN);
@@ -196,27 +199,27 @@ namespace turing_learning::synthesis::tnf
 			mpfr_mul_ui(estimated, estimated, 1000000000, MPFR_RNDN);
 
 			std::cout << "====================================================\n";
-			std::cout << "progress:\t" << mpfr::str::to_str(progress, 32) << " %\n";
-			std::cout << "speed:\t\t" << mpfr::str::to_str(speed, 0) << " (" << mpfr::str::to_str_scientific(speed, 0) << ") TMs/s\n";
-			std::cout << "speed (raw):\t" << mpfr::str::to_str(speed_raw, 0) << " (" << mpfr::str::to_str_scientific(speed_raw, 0) << ") TMs/s\n";
+			std::cout << "progress:\t" << mpfr::to_str(progress, 32) << " %\n";
+			std::cout << "speed:\t\t" << mpfr::to_str(speed, 0) << " (" << mpfr::to_str_scientific(speed, 0) << ") TMs/s\n";
+			std::cout << "speed (raw):\t" << mpfr::to_str(speed_raw, 0) << " (" << mpfr::to_str_scientific(speed_raw, 0) << ") TMs/s\n";
 			// std::cout << "efficiency:\t" << MathMpfr::to_str(efficiency, 32) << " (1 - " << MathMpfr::to_str_scientific(efficiency_inv, 32) << ") %\n";
-			std::cout << "efficiency:\t" << mpfr::str::to_str(efficiency, 32) << " %\n";
-			std::cout << "waste:\t\t" << mpfr::str::to_str_scientific(waste, 5) << " %\n";
-			std::cout << "estimated:\t" << mpfr::str::to_str(estimated, 0) << " s | ";
+			std::cout << "efficiency:\t" << mpfr::to_str(efficiency, 32) << " %\n";
+			std::cout << "waste:\t\t" << mpfr::to_str_scientific(waste, 5) << " %\n";
+			std::cout << "estimated:\t" << mpfr::to_str(estimated, 0) << " s | ";
 			mpfr_div_ui(estimated, estimated, 60, MPFR_RNDN);
-			std::cout << mpfr::str::to_str(estimated, 0) << " m | ";
+			std::cout << mpfr::to_str(estimated, 0) << " m | ";
 			mpfr_div_ui(estimated, estimated, 60, MPFR_RNDN);
-			std::cout << mpfr::str::to_str(estimated, 0) << " h | ";
+			std::cout << mpfr::to_str(estimated, 0) << " h | ";
 			mpfr_div_ui(estimated, estimated, 24, MPFR_RNDN);
-			std::cout << mpfr::str::to_str(estimated, 0) << " d | ";
+			std::cout << mpfr::to_str(estimated, 0) << " d | ";
 			mpfr_div_ui(estimated, estimated, 365, MPFR_RNDN);
-			std::cout << mpfr::str::to_str(estimated, 0) << " y\n";
+			std::cout << mpfr::to_str(estimated, 0) << " y\n";
 
 			// TODO averages in (avg: )
 
 
-			// uint64_t digit_size = std::to_string(total).size();
-			// for (uint64_t i = 0; i < individual_progress_.size(); i++)
+			// u64 digit_size = std::to_string(total).size();
+			// for (u64 i = 0; i < individual_progress_.size(); i++)
 			// {
 			// 	std::cout << std::format("[{:{}}/{}] ", individual_progress_[i], digit_size, total);
 			// }
@@ -246,12 +249,12 @@ namespace turing_learning::synthesis::tnf
 			// std::this_thread::sleep_for(1000ms);
 
 			iteration_++;
-			uint64_t total_error = 0;
+			u64 total_error = 0;
 
-			uint64_t curr_children_num = children_num();
-			uint64_t total_expansions = curr_children_num * dataset_->size();
+			u64 curr_children_num = children_num();
+			u64 total_expansions = curr_children_num * dataset_->size();
 
-			for (uint64_t i = 0; i < dataset_->size(); i++)
+			for (u64 i = 0; i < dataset_->size(); i++)
 			{
 				if (steady_clock::now() >= timer_deadline_)
 				{
@@ -282,13 +285,13 @@ namespace turing_learning::synthesis::tnf
 				{
 					// PERF tape state copy, inefficient
 					TapeState<Config> tape_state = working_tape.get_tape_state();
-					uint64_t new_state_idx = 0;
+					u64 new_state_idx = 0;
 					const std::vector<Program<Config>> children = gen_children(parent, tape_state, &new_state_idx);
 					// std::cout << std::to_string(benchmark::Timer::total_elapsed_ms()) << "\n";
 
 					bool incremented_new_state = false;
 					// PERF instead of children.size() calculate number of children in constexpr
-					for (uint64_t i = 0; i < children.size(); i++)
+					for (u64 i = 0; i < children.size(); i++)
 					{
 						individual_progress_[expansion_depth_]++;
 
@@ -335,9 +338,9 @@ namespace turing_learning::synthesis::tnf
 			num_symbols_(num_symbols),
 			num_heads_(num_heads),
 			num_states_(num_states),
-			best_total_error_(std::numeric_limits<uint64_t>::max()),
+			best_total_error_(std::numeric_limits<u64>::max()),
 			next_new_state_(2),
-			known_state_combinations_num_(fluff::Math::fast_pow(num_symbols * HeadOperation::NUM_OPERATIONS, num_heads)),
+			known_state_combinations_num_(fluff::math::fast_pow(num_symbols * HeadOperation::NUM_OPERATIONS, num_heads)),
 			expansion_depth_(0)
 		{
 			mpfr_init2(tm_simulated_count_, bit_precision_);
@@ -352,11 +355,11 @@ namespace turing_learning::synthesis::tnf
 			mpfr_clear(tm_static_count_);
 		}
 
-		static inline constexpr uint64_t error(const std::vector<ExecutionResults<Config>>& results, const Dataset<Config>& dataset)
+		static inline constexpr u64 error(const std::vector<ExecutionResults<Config>>& results, const Dataset<Config>& dataset)
 		{
-			uint64_t total_error = 0;
+			u64 total_error = 0;
 
-			for (uint64_t i = 0; i < results.size(); i++)
+			for (u64 i = 0; i < results.size(); i++)
 			{
 				total_error += error(results[i].memory, dataset.get_output(i));
 			}
@@ -364,18 +367,18 @@ namespace turing_learning::synthesis::tnf
 			return total_error;
 		}
 
-		static inline constexpr uint64_t error(const Memory<Config>& output, const Memory<Config>& expected)
+		static inline constexpr u64 error(const Memory<Config>& output, const Memory<Config>& expected)
 		{
 			return output.cmp(expected);
 		}
 
-		Program<Config> run(uint64_t max_iterations, const Dataset<Config>& dataset)
+		Program<Config> run(u64 max_iterations, const Dataset<Config>& dataset)
 		{
 			dataset_ = &dataset;
 			max_iterations_ = max_iterations;
 			iteration_ = 0;
 
-			best_total_error_ = std::numeric_limits<uint64_t>::max();
+			best_total_error_ = std::numeric_limits<u64>::max();
 			best_tm_ = init_;
 
 			timer_start_ = steady_clock::now();

@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 4.3)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 
 set(PROJECT "turing_learn")
 set(LIB "turing_learn_lib")
@@ -23,7 +22,7 @@ project(${PROJECT})
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS ${SRC_DIR}/*.cpp)
 list(FILTER SRC_FILES EXCLUDE REGEX ".*${MAIN}$")
 file(GLOB_RECURSE INCLUDE_FILES CONFIGURE_DEPENDS ${INCLUDE_DIR}/*.hpp)
-add_library(${LIB} STATIC ${SRC_FILES} ${INCLUDE_FILES})
+add_library(${LIB} ${SRC_FILES} ${INCLUDE_FILES})
 set_target_properties(${LIB} PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories(${LIB} PUBLIC ${INCLUDE_DIR})
@@ -50,7 +49,7 @@ target_compile_options(${BIN} PRIVATE
 	# -g
 )
 
-set(USE_MPFR ON CACHE BOOL "" FORCE)
+set(FLUFF_EXTENSION_MPFR ON CACHE BOOL "" FORCE)
 
 add_subdirectory(third_party/fluff)
 
@@ -67,10 +66,8 @@ if (BUILD_TESTS)
 	add_subdirectory(third_party/doctest)
 	add_subdirectory(third_party/gmp-6.3.0)
 
-	target_link_libraries(${BIN}_test PUBLIC
+	target_link_libraries(${BIN}_test PRIVATE
 		doctest
-		GMP::GMPXX
-		GMP::GMP
 	)
 
 	file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS ${TEST_DIR}/*.cpp)
