@@ -4,8 +4,8 @@
 #include <optional>
 #include <unordered_set>
 
-#include <fluff/benchmark>
-#include <fluff/math>
+#include <fluff/benchmark.hpp>
+#include <fluff/math.hpp>
 #include "utm/state_transition.hpp"
 
 namespace turing_learning::utm

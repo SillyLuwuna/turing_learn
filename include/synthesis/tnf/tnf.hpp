@@ -1,8 +1,8 @@
 #pragma once
 
-#include <fluff/extensions/mpfr>
+#include <fluff/extensions/mpfr.hpp>
 // #include <mpfr.h>
-#include <fluff/benchmark>
+#include <fluff/benchmark.hpp>
 #include "utm/program.hpp"
 #include "datasets/dataset.hpp"
 #include "utm/utm.hpp"

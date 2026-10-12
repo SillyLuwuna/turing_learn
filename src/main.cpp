@@ -12,16 +12,13 @@
 #include "datasets/count_dataset.hpp"
 #include "datasets/dataset.hpp"
 
-#include <fluff/containers>
-#include <fluff/containers>
+#include <fluff/containers.hpp>
 
 using namespace turing_learning;
 using namespace turing_learning::utm;
 using namespace turing_learning::synthesis;
 using namespace turing_learning::datasets;
 using namespace turing_learning::synthesis::tnf;
-
-#include <fluff/containers>
 
 int main()
 {

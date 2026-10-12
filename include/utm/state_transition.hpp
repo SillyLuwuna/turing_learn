@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <functional>
 
-#include <fluff/containers>
+#include <fluff/containers.hpp>
 #include "utm/head_operation.hpp"
 #include "utm/symbol.hpp"
 #include "utm/tape_state.hpp"
@@ -25,7 +25,7 @@ namespace turing_learning::utm
 		TapeState<Config> trigger_state;
 		Symbol head_writes[num_heads];
 		State target_state;
-		fluff::ContiguousBits<HeadOperation, uint8_t, 2, num_tapes> head_operations;
+		fluff::ContiguousArray<HeadOperation, uint8_t, 2, num_tapes> head_operations;
 		// ContiguousBits<HeadOperation, uint8_t, sizeof(HeadOperation) * 8, num_tapes> head_operations;
 
 		inline constexpr void set_head_operation(NumTapesType tape, HeadOperation operation)

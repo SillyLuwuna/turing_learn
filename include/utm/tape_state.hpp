@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fluff/hashing>
+#include <fluff/hashing.hpp>
 #include "utm/symbol.hpp"
 #include <cstdint>
 #include <cstring>

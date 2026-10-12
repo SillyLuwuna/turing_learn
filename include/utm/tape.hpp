@@ -1,7 +1,7 @@
 #pragma once
 
-#include <fluff/containers>
-#include <fluff/benchmark>
+#include <fluff/containers.hpp>
+#include <fluff/benchmark.hpp>
 #include "utm/symbol.hpp"
 #include <cstdint>
 #include <vector>
@@ -25,8 +25,8 @@ namespace turing_learning::utm
 
 		using contiguous_bits_type = std::conditional_t<
 			align_tape,
-			fluff::ContiguousBits<Symbol, Symbol, sizeof(Symbol) * 8, tape_len>,
-			fluff::ContiguousBits<Symbol, uint8_t, symbol_bits, tape_len>
+			fluff::ContiguousArray<Symbol, Symbol, sizeof(Symbol) * 8, tape_len>,
+			fluff::ContiguousArray<Symbol, uint8_t, symbol_bits, tape_len>
 		>;
 		contiguous_bits_type tape_;
 

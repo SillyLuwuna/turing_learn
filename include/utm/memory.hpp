@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fluff/benchmark>
+#include <fluff/benchmark.hpp>
 #include "utm/head.hpp"
 #include "utm/state_transition.hpp"
 #include "utm/tape_state.hpp"

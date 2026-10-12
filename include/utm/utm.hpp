@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include <fluff/benchmark>
+#include <fluff/benchmark.hpp>
 #include "utm/exit_code.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"

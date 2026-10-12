@@ -37,13 +37,14 @@ target_compile_options(${BIN} PRIVATE
 	-Wall
 	-Wextra
 	-Wpedantic
-	# -save-temps=obj
-	# -fverbose-asm
+	-Wswitch
+
+
 	-O3
-	# -falign-functions=256
-	# -falign-loops=256
+	-lto
 	# -march=native
 	# -ffast-math
+
 	# -fno-inline
 	# -fno-omit-frame-pointer
 	# -g
