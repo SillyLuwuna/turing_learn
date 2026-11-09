@@ -1,5 +1,11 @@
 #pragma once
 
+#include "utm/accelerated/chain_memory.hpp"
+#include "utm/accelerated/chain_tape.hpp"
+#include "utm/accelerated/chain_head.hpp"
+#include "utm/direct/contiguous_memory.hpp"
+#include "utm/direct/contiguous_tape.hpp"
+#include "utm/direct/contiguous_head.hpp"
 #include <fluff/memory.hpp>
 
 namespace turing_learning::utm
@@ -13,8 +19,9 @@ namespace turing_learning::utm
 		u64 NumSymbols,
 		u64 NumStates,
 		u64 MaxIterations,
-		bool AlignTape,
-		bool UnsafeStep
+		bool AlignTape = true,
+		bool UnsafeStep = false,
+		bool TapeCompression = true
 	>
 		requires(NumHeads > 0 && NumTapes > 0 && TapeLen > 0 && NumSymbols > 0 && NumStates >= 2 && MaxIterations > 0)
 	struct Config
@@ -25,6 +32,11 @@ namespace turing_learning::utm
 		using TapeLenType = typename fluff::memory::SizeSelector<TapeLen>::type;
 		using Symbol = typename fluff::memory::SizeSelector<NumSymbols>::type;
 		using State = typename fluff::memory::SizeSelector<NumStates>::type;
+
+		// using Tape = std::conditional_t<TapeCompression, ChainTape<Config>, ContiguousTape<Config>>;
+		using MemType = std::conditional_t<TapeCompression, ChainMemory<Config>, ContiguousMemory<Config>>;
+		using HeadType = std::conditional_t<TapeCompression, ChainHead<Config>, ContiguousHead<Config>>;
+		using TapeType = std::conditional_t<TapeCompression, ChainTape<Config>, ContiguousTape<Config>>;
 
 		// FIXME NumHeads will be greater than NumHeadsType can support, and same for the others
 		// this requires fixing in every other class that uses this. Make them just use the original
@@ -37,6 +49,7 @@ namespace turing_learning::utm
 		static constexpr u64 max_iterations = MaxIterations;
 		static constexpr bool align_tape = AlignTape;
 		static constexpr bool unsafe_step = UnsafeStep;
+		static constexpr bool tape_compression = TapeCompression;
 
 		static constexpr State terminal_state = 0;
 		static constexpr State entry_state = 1;

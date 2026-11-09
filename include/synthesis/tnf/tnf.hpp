@@ -37,6 +37,8 @@ namespace turing_learning::synthesis::tnf
 		// static constexpr NumTapesType num_tapes = Config::num_tapes;
 		// static constexpr NumHeadsType num_heads = Config::num_heads;
 
+		using MemType = typename Config::MemType;
+
 		static constexpr mpfr_prec_t bit_precision_ = 512;
 
 		static inline const Program<Config> init_ = Program<Config>();
@@ -264,7 +266,7 @@ namespace turing_learning::synthesis::tnf
 				}
 				individual_progress_[expansion_depth_] = curr_children_num * i;
 
-				Memory<Config> working_tape = dataset_->get_input(i);
+				MemType working_tape = dataset_->get_input(i);
 				Utm<Config> tm(parent, working_tape);
 
 				tm.run(); // PERF don't run the tm from the beginning. Maybe even rollback changes
@@ -367,7 +369,7 @@ namespace turing_learning::synthesis::tnf
 			return total_error;
 		}
 
-		static inline constexpr u64 error(const Memory<Config>& output, const Memory<Config>& expected)
+		static inline constexpr u64 error(const MemType& output, const MemType& expected)
 		{
 			return output.cmp(expected);
 		}

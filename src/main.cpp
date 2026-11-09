@@ -50,12 +50,25 @@ i32 main()
 	// constexpr u64 max_iterations = 24723622;
 	constexpr bool align_tape = true;
 	constexpr bool unsafe_step = false;
-	using InstanceConfig = Config<num_heads, num_tapes, tape_len, num_symbols, num_states, max_iterations, align_tape, unsafe_step>;
+	constexpr bool tape_compression = false;
+
+	using InstanceConfig = Config<
+		num_heads,
+		num_tapes,
+		tape_len,
+		num_symbols,
+		num_states,
+		max_iterations,
+		align_tape,
+		unsafe_step,
+		tape_compression
+	>;
 
 	fluff::random::Xoshiro256p rng(seed);
 
 	// TODO way to calculate required max_iterations automatically
 
+	// FIXME choose Memory type automatically based on tape_compression flag
 	CountDataset<InstanceConfig> count_dataset(rng, max_dataset_entry_len);
 	Dataset<InstanceConfig> train_dataset = count_dataset.gen_dataset(train_dataset_len); // PERF extremely slow
 	// Dataset<InstanceConfig> test_dataset = count_dataset.gen_dataset(test_dataset_len);

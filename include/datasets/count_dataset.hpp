@@ -3,6 +3,9 @@
 #include <fluff/random.hpp>
 #include <fluff/types.hpp>
 #include "utm/memory.hpp"
+#include "utm/direct/contiguous_memory.hpp"
+#include "utm/direct/contiguous_head.hpp"
+#include "utm/direct/contiguous_tape.hpp"
 #include "utm/program.hpp"
 #include "utm/utm.hpp"
 #include "datasets/dataset.hpp"
@@ -22,12 +25,17 @@ namespace turing_learning::datasets
 		using NumHeadsType = typename Config::NumHeadsType;
 		using NumTapesType = typename Config::NumTapesType;
 
+		using MemType = typename Config::MemType;
+		using HeadType = typename Config::HeadType;
+		using TapeType = typename Config::TapeType;
+
 
 		static constexpr Symbol num_symbols = Config::NumSymbols;
 		static constexpr State num_states = Config::NumStates;
 		static constexpr TapeLenType tape_len = Config::tape_len;
 		static constexpr NumTapesType num_tapes = Config::num_tapes;
 		static constexpr NumHeadsType num_heads = Config::num_heads;
+		static constexpr bool tape_compression = Config::tape_compression;
 
 
 		// PERF should be static/constexpr
@@ -158,30 +166,31 @@ namespace turing_learning::datasets
 
 		// input/output
 		// TODO use next64_high/med/low
-		std::pair<Memory<Config>, Memory<Config>> gen_datapoint()
+		std::pair<MemType, MemType> gen_datapoint()
 		{
 			fluff::random::RandomStream rng_stream(rng_);
 
 			u64 start = std::bit_width(max_len_);
 			u64 len = rng_stream.next64(max_len_ - start) + 1;
 
-			Tape<Config> tape = Tape<Config>(start);
+			TapeType tape = TapeType(start);
 			for (u64 i = start; i < (start + len); i++)
 			{
 				tape.write(i, rng_stream.next64(2) + 1);
 			}
-			Head<Config> head = Head<Config>(tape);
 
-			Tape<Config>* tapes[num_tapes] = { &tape };
-			Head<Config>* heads[num_heads] = { &head };
+			HeadType head = HeadType(tape);
 
-			Memory<Config> input(tapes, heads);
+			TapeType* tapes[num_tapes] = { &tape };
+			HeadType* heads[num_heads] = { &head };
 
-			Memory<Config> output = input;
+			MemType input(tapes, heads);
+			MemType output = input;
+
 			Utm<Config> utm(solution, output);
 			utm.run();
 
-			return std::make_pair<Memory<Config>, Memory<Config>>(std::move(input), std::move(output));
+			return std::make_pair<MemType, MemType>(std::move(input), std::move(output));
 		}
 
 		Dataset<Config> gen_dataset(u64 num_entries)

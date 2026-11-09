@@ -10,9 +10,11 @@ namespace turing_learning::utm
 	template<typename Config>
 	struct ExecutionResults
 	{
+		using MemType = typename Config::MemType;
+
 		u64 cycles_elapsed;
 		u64 size_bytes;
 		ExitCode exit_code;
-		Memory<Config> memory;
+		MemType memory;
 	};
 }

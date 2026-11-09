@@ -57,6 +57,11 @@ target_link_libraries(${LIB} PUBLIC
 	fluff
 )
 
+target_compile_options(${LIB} PUBLIC
+	-O3
+	-lto
+)
+
 if (BUILD_TESTS)
 	add_executable(${BIN}_test ${TEST_MAIN})
 	target_link_libraries(${BIN}_test PUBLIC ${LIB})

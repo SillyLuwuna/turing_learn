@@ -25,7 +25,6 @@ namespace turing_learning::utm
 		Symbol head_writes[num_heads];
 		State target_state;
 		fluff::ContiguousArray<HeadOperation, u8, 2, num_tapes> head_operations;
-		// ContiguousBits<HeadOperation, u8, sizeof(HeadOperation) * 8, num_tapes> head_operations;
 
 		inline constexpr void set_head_operation(NumTapesType tape, HeadOperation operation)
 		{

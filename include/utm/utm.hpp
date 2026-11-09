@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fluff/benchmark.hpp>
+#include "utm/direct/contiguous_memory.hpp"
 #include "utm/exit_code.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
@@ -17,9 +18,11 @@ namespace turing_learning::utm
 	{
 	private:
 		using State = typename Config::State;
+		using MemType = typename Config::MemType;
 
 		static constexpr u64 max_iterations_ = Config::max_iterations;
 		static constexpr bool unsafe_step = Config::unsafe_step;
+		static constexpr bool tape_compression = Config::tape_compression;
 
 		const Program<Config>& program_;
 		Memory<Config>& memory_;
@@ -99,17 +102,18 @@ namespace turing_learning::utm
 
 			for (u64 i = 0; i < dataset.size(); i++)
 			{
-				Memory<Config> memory(dataset.get_input(i));
+				MemType memory(dataset.get_input(i));
+
 				Utm<Config> utm(program, memory);
 				utm.run();
 
-				ExecutionResults stats {
+				ExecutionResults<Config> stats {
 					.cycles_elapsed = utm.cycles_elapsed(),
 					.size_bytes = utm.num_bytes(),
 					.exit_code = utm.exit_code(),
-					.memory = memory
+					.memory = std::move(memory) // PERF do move operator/constructor in memory types
 				};
-				all_stats.emplace_back(stats);
+				all_stats.emplace_back(std::move(stats));
 			}
 
 			return all_stats;
