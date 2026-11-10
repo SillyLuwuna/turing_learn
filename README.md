@@ -124,6 +124,7 @@ so take this with a grain of salt.
 - shift rules
 - inductive rule prover
 - nested exponential integer datatype
+- early infinite loop detection
 
 ## Future Ideas
 

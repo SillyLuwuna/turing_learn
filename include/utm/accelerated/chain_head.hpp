@@ -1,14 +1,15 @@
 #pragma once
 
-#include <cstdint>
-
-#include "utm/symbol.hpp"
-#include "utm/tape.hpp"
+#include "utm/direct/contiguous_tape.hpp"
+#include <string>
+#include <fluff/types.hpp>
 
 namespace turing_learning::utm
 {
+	using namespace fluff::types;
+
 	template<typename Config>
-	class Head
+	class ChainHead
 	{
 	private:
 		using Symbol = typename Config::Symbol;
@@ -16,21 +17,21 @@ namespace turing_learning::utm
 
 		static constexpr TapeLenType tape_len = Config::tape_len;
 
-		Tape<Config>& tape_;
+		ContiguousTape<Config>& tape_;
 		TapeLenType pos_;
 
 	public:
-		inline constexpr Head(Tape<Config>& tape, TapeLenType pos) :
+		inline constexpr ChainHead(ContiguousTape<Config>& tape, TapeLenType pos) :
 			tape_(tape),
 			pos_(pos)
 		{ }
 
-		inline constexpr Head(const Head<Config>& other) :
+		inline constexpr ChainHead(const ChainHead<Config>& other) :
 			tape_(other.tape_),
 			pos_(other.pos_)
 		{ }
 
-		inline constexpr Head<Config>& operator=(const Head<Config>&& other)
+		inline constexpr ChainHead<Config>& operator=(const ChainHead<Config>&& other)
 		{
 			tape_ = other.tape_;
 			pos_ = other.pos_;
@@ -38,8 +39,8 @@ namespace turing_learning::utm
 			return *this;
 		}
 
-		inline constexpr Head(Tape<Config>& tape) :
-			Head(tape, tape.low())
+		inline constexpr ChainHead(ContiguousTape<Config>& tape) :
+			ChainHead(tape, tape.low())
 		{ }
 
 		inline constexpr void move_left()
@@ -52,7 +53,7 @@ namespace turing_learning::utm
 			pos_++;
 		}
 
-		inline constexpr void move(int64_t dir)
+		inline constexpr void move(i64 dir)
 		{
 			pos_ += dir;
 		}
@@ -87,7 +88,7 @@ namespace turing_learning::utm
 			return pos_ == (tape_len - 1);
 		}
 
-		inline constexpr const Tape<Config>& tape() const
+		inline constexpr const ContiguousTape<Config>& tape() const
 		{
 			return tape_;
 		}

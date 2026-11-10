@@ -1,11 +1,13 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
+#include <fluff/types.hpp>
 
 namespace turing_learning::utm
 {
-	enum HeadOperation : uint8_t // should be max 2 bits
+	using namespace fluff::types;
+
+	enum HeadOperation : u8 // should be max 2 bits
 	{
 		Left,
 		NOP,

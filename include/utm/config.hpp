@@ -1,51 +1,64 @@
 #pragma once
 
+#include "utm/accelerated/chain_memory.hpp"
+#include "utm/accelerated/chain_tape.hpp"
+#include "utm/accelerated/chain_head.hpp"
+#include "utm/direct/contiguous_memory.hpp"
+#include "utm/direct/contiguous_tape.hpp"
+#include "utm/direct/contiguous_head.hpp"
 #include <fluff/memory.hpp>
-#include <cmath>
-#include <cstdint>
 
 namespace turing_learning::utm
 {
+	using namespace fluff::types;
+
 	template<
-		uint64_t NumHeads,
-		uint64_t NumTapes,
-		uint64_t TapeLen,
-		uint64_t NumSymbols,
-		uint64_t NumStates,
-		uint64_t MaxIterations,
-		bool AlignTape,
-		bool UnsafeStep
+		u64 NumHeads,
+		u64 NumTapes,
+		u64 TapeLen,
+		u64 NumSymbols,
+		u64 NumStates,
+		u64 MaxIterations,
+		bool AlignTape = true,
+		bool UnsafeStep = false,
+		bool TapeCompression = true
 	>
 		requires(NumHeads > 0 && NumTapes > 0 && TapeLen > 0 && NumSymbols > 0 && NumStates >= 2 && MaxIterations > 0)
 	struct Config
 	{
 		// -1 because: for i.e. 5 heads, we need at most the number 4, because 0 is included
-		using NumHeadsType = typename fluff::SizeSelector<NumHeads>::type;
-		using NumTapesType = typename fluff::SizeSelector<NumTapes>::type;
-		using TapeLenType = typename fluff::SizeSelector<TapeLen>::type;
-		using Symbol = typename fluff::SizeSelector<NumSymbols>::type;
-		using State = typename fluff::SizeSelector<NumStates>::type;
+		using NumHeadsType = typename fluff::memory::SizeSelector<NumHeads>::type;
+		using NumTapesType = typename fluff::memory::SizeSelector<NumTapes>::type;
+		using TapeLenType = typename fluff::memory::SizeSelector<TapeLen>::type;
+		using Symbol = typename fluff::memory::SizeSelector<NumSymbols>::type;
+		using State = typename fluff::memory::SizeSelector<NumStates>::type;
+
+		// using Tape = std::conditional_t<TapeCompression, ChainTape<Config>, ContiguousTape<Config>>;
+		using MemType = std::conditional_t<TapeCompression, ChainMemory<Config>, ContiguousMemory<Config>>;
+		using HeadType = std::conditional_t<TapeCompression, ChainHead<Config>, ContiguousHead<Config>>;
+		using TapeType = std::conditional_t<TapeCompression, ChainTape<Config>, ContiguousTape<Config>>;
 
 		// FIXME NumHeads will be greater than NumHeadsType can support, and same for the others
 		// this requires fixing in every other class that uses this. Make them just use the original
-		// template parameters by changing all of this to uint64_t, first remove it to see where it errors
+		// template parameters by changing all of this to u64, first remove it to see where it errors
 		static constexpr NumHeadsType num_heads = NumHeads;
 		static constexpr NumTapesType num_tapes = NumTapes;
 		static constexpr TapeLenType tape_len = TapeLen;
 		static constexpr Symbol num_symbols = NumSymbols;
 		static constexpr State num_states = NumStates;
-		static constexpr uint64_t max_iterations = MaxIterations;
+		static constexpr u64 max_iterations = MaxIterations;
 		static constexpr bool align_tape = AlignTape;
 		static constexpr bool unsafe_step = UnsafeStep;
+		static constexpr bool tape_compression = TapeCompression;
 
 		static constexpr State terminal_state = 0;
 		static constexpr State entry_state = 1;
 
 		// TODO change for std::bit_width
-		static constexpr uint64_t get_required_bits(uint64_t size)
+		static constexpr u64 get_required_bits(u64 size)
 		{
-			uint64_t bits = 1;
-			uint64_t max_size = 2;
+			u64 bits = 1;
+			u64 max_size = 2;
 
 			while (max_size < size)
 			{
@@ -56,6 +69,6 @@ namespace turing_learning::utm
 			return bits;
 		}
 
-		static constexpr uint64_t symbol_bits = get_required_bits(NumSymbols);
+		static constexpr u64 symbol_bits = get_required_bits(NumSymbols);
 	};
 }

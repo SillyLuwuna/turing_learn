@@ -1,31 +1,33 @@
 #pragma once
 
-#include <cstdint>
-
 #include <fluff/benchmark.hpp>
+#include "utm/direct/contiguous_memory.hpp"
 #include "utm/exit_code.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
 #include "utm/execution_results.hpp"
 #include "datasets/dataset.hpp"
 
-using namespace turing_learning::datasets;
-
 namespace turing_learning::utm
 {
+	using namespace fluff::types;
+	using namespace turing_learning::datasets;
+
 	template<typename Config>
 	class Utm : public fluff::benchmark::ByteMeasurable
 	{
 	private:
 		using State = typename Config::State;
+		using MemType = typename Config::MemType;
 
-		static constexpr uint64_t max_iterations_ = Config::max_iterations;
+		static constexpr u64 max_iterations_ = Config::max_iterations;
 		static constexpr bool unsafe_step = Config::unsafe_step;
+		static constexpr bool tape_compression = Config::tape_compression;
 
 		const Program<Config>& program_;
 		Memory<Config>& memory_;
 		ExitCode exit_code_;
-		uint64_t cycle_count_;
+		u64 cycle_count_;
 
 	public:
 
@@ -98,19 +100,20 @@ namespace turing_learning::utm
 			std::vector<ExecutionResults<Config>> all_stats;
 			all_stats.reserve(dataset.size());
 
-			for (uint64_t i = 0; i < dataset.size(); i++)
+			for (u64 i = 0; i < dataset.size(); i++)
 			{
-				Memory<Config> memory(dataset.get_input(i));
+				MemType memory(dataset.get_input(i));
+
 				Utm<Config> utm(program, memory);
 				utm.run();
 
-				ExecutionResults stats {
+				ExecutionResults<Config> stats {
 					.cycles_elapsed = utm.cycles_elapsed(),
 					.size_bytes = utm.num_bytes(),
 					.exit_code = utm.exit_code(),
-					.memory = memory
+					.memory = std::move(memory) // PERF do move operator/constructor in memory types
 				};
-				all_stats.emplace_back(stats);
+				all_stats.emplace_back(std::move(stats));
 			}
 
 			return all_stats;
@@ -121,12 +124,12 @@ namespace turing_learning::utm
 			return exit_code_;
 		}
 
-		inline constexpr uint64_t cycles_elapsed() const
+		inline constexpr u64 cycles_elapsed() const
 		{
 			return cycle_count_;
 		}
 
-		uint64_t num_bytes() const override
+		u64 num_bytes() const override
 		{
 			return sizeof(*this) + program_.num_bytes() + memory_.num_bytes();
 		}

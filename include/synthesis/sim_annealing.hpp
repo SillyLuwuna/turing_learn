@@ -1,16 +1,18 @@
 #pragma once
 
 #include <fluff/random.hpp>
+#include <iostream>
 #include "utm/execution_results.hpp"
 #include "utm/memory.hpp"
 #include "utm/program.hpp"
 #include "datasets/dataset.hpp"
 #include "utm/utm.hpp"
 
-using namespace turing_learning::utm;
-
 namespace turing_learning::synthesis
 {
+	using namespace turing_learning::utm;
+	using namespace fluff::types;
+
 	template<typename Config>
 	class SimulatedAnnealing
 	{
@@ -31,9 +33,9 @@ namespace turing_learning::synthesis
 		fluff::random::RandomEngine& rng_;
 		fluff::random::RandomStream rng_stream_;
 
-		const uint64_t num_symbols_;
-		const uint64_t num_heads_;
-		const uint64_t num_states_;
+		const u64 num_symbols_;
+		const u64 num_heads_;
+		const u64 num_states_;
 
 		// static constexpr float inv_log2_8 = 1.0f / std::log2f(8.0f);
 		static constexpr float inv_log2_8 = 1.0f / 3.0f;
@@ -48,9 +50,9 @@ namespace turing_learning::synthesis
 		// TODO limit maximum connections / transitions
 		SimulatedAnnealing(
 			fluff::random::RandomEngine& rng_engine,
-			uint64_t num_symbols,
-			uint64_t num_heads,
-			uint64_t num_states
+			u64 num_symbols,
+			u64 num_heads,
+			u64 num_states
 		) :
 			rng_(rng_engine),
 			rng_stream_(rng_),
@@ -68,7 +70,7 @@ namespace turing_learning::synthesis
 		{
 			float curr_energy = 0;
 
-			for (uint64_t i = 0; i < results.size(); i++)
+			for (u64 i = 0; i < results.size(); i++)
 			{
 				curr_energy += energy(results[i].memory, dataset.get_output(i));
 			}
@@ -76,7 +78,7 @@ namespace turing_learning::synthesis
 			return curr_energy;
 		}
 
-		inline constexpr float temperature_schedule(uint64_t curr_iteration, uint64_t max_iterations)
+		inline constexpr float temperature_schedule(u64 curr_iteration, u64 max_iterations)
 		{
 			return 1.0f - ((float)(curr_iteration + 1) / (float)max_iterations);
 		}
@@ -100,7 +102,7 @@ namespace turing_learning::synthesis
 			StateTransition<Config> transition;
 			transition.trigger_state.state = rng_stream_.next64(num_states_ + 1);
 			transition.target_state = rng_stream_.next64(num_states_ + 1);
-			for (uint64_t i = 0; i < num_heads_; i++)
+			for (u64 i = 0; i < num_heads_; i++)
 			{
 				transition.trigger_state.head_reads[i] = rng_stream_.next64(num_symbols_);
 				transition.head_writes[i] = rng_stream_.next64(num_symbols_);
@@ -119,7 +121,7 @@ namespace turing_learning::synthesis
 		}
 
 		// TODO return statistics and other useful things
-		Program<Config> run(uint64_t max_iterations, const Dataset<Config>& dataset)
+		Program<Config> run(u64 max_iterations, const Dataset<Config>& dataset)
 		{
 			Program<Config> curr_solution = init_program();
 			float curr_solution_energy = energy(Utm<Config>::run_dataset(curr_solution, dataset), dataset);
@@ -127,7 +129,7 @@ namespace turing_learning::synthesis
 			float best_energy = curr_solution_energy;
 			Program<Config> best_solution = curr_solution;
 
-			for (uint64_t i = 0; i < max_iterations; i++)
+			for (u64 i = 0; i < max_iterations; i++)
 			{
 				float temperature = temperature_schedule(i, max_iterations);
 				Program<Config> candidate = neighbour(curr_solution);

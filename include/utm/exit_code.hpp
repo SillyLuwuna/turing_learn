@@ -1,11 +1,13 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
+#include <fluff/types.hpp>
 
 namespace turing_learning::utm
 {
-	enum ExitCode : uint8_t
+	using namespace fluff::types;
+
+	enum ExitCode : u8
 	{
 		None,
 		Finished,

@@ -3,42 +3,45 @@
 #include <vector>
 #include "utm/memory.hpp"
 
-using namespace turing_learning::utm;
-
 namespace turing_learning::datasets
 {
+	using namespace fluff::types;
+	using namespace turing_learning::utm;
+
 	// TODO implement operator []
 	template<typename Config>
 	class Dataset
 	{
 	private:
-		std::vector<Memory<Config>> inputs_;
-		std::vector<Memory<Config>> outputs_;
+		using MemType = typename Config::MemType;
+
+		std::vector<MemType> inputs_;
+		std::vector<MemType> outputs_;
 
 	public:
 		// PERF copying is inefficient
-		constexpr void add_entry(std::pair<Memory<Config>, Memory<Config>> entry)
+		constexpr void add_entry(std::pair<MemType, MemType> entry)
 		{
 			add_entry(entry.first, entry.second);
 		}
 
-		constexpr void add_entry(Memory<Config> entry_input, Memory<Config> entry_output)
+		constexpr void add_entry(MemType entry_input, MemType entry_output)
 		{
 			inputs_.emplace_back(std::move(entry_input));
 			outputs_.emplace_back(std::move(entry_output));
 		}
 
-		inline constexpr const Memory<Config>& get_input(uint64_t idx) const
+		inline constexpr const MemType& get_input(u64 idx) const
 		{
 			return inputs_[idx];
 		}
 
-		inline constexpr const Memory<Config>& get_output(uint64_t idx) const
+		inline constexpr const MemType& get_output(u64 idx) const
 		{
 			return outputs_[idx];
 		}
 
-		inline constexpr uint64_t size() const
+		inline constexpr u64 size() const
 		{
 			return inputs_.size();
 		}

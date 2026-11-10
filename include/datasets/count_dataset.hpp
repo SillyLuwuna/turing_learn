@@ -1,16 +1,20 @@
 #pragma once
 
 #include <fluff/random.hpp>
-#include <vector>
+#include <fluff/types.hpp>
 #include "utm/memory.hpp"
+#include "utm/direct/contiguous_memory.hpp"
+#include "utm/direct/contiguous_head.hpp"
+#include "utm/direct/contiguous_tape.hpp"
 #include "utm/program.hpp"
 #include "utm/utm.hpp"
 #include "datasets/dataset.hpp"
 
-using namespace turing_learning::utm;
-
 namespace turing_learning::datasets
 {
+	using namespace fluff::types;
+	using namespace turing_learning::utm;
+
 	template<typename Config>
 	class CountDataset
 	{
@@ -21,18 +25,23 @@ namespace turing_learning::datasets
 		using NumHeadsType = typename Config::NumHeadsType;
 		using NumTapesType = typename Config::NumTapesType;
 
+		using MemType = typename Config::MemType;
+		using HeadType = typename Config::HeadType;
+		using TapeType = typename Config::TapeType;
+
 
 		static constexpr Symbol num_symbols = Config::NumSymbols;
 		static constexpr State num_states = Config::NumStates;
 		static constexpr TapeLenType tape_len = Config::tape_len;
 		static constexpr NumTapesType num_tapes = Config::num_tapes;
 		static constexpr NumHeadsType num_heads = Config::num_heads;
+		static constexpr bool tape_compression = Config::tape_compression;
 
 
 		// PERF should be static/constexpr
 		const Program<Config> solution = gen_solution();
 		fluff::random::RandomEngine& rng_;
-		uint64_t max_len_;
+		u64 max_len_;
 
 	public:
 		static constexpr Program<Config> gen_solution()
@@ -150,46 +159,47 @@ namespace turing_learning::datasets
 			return solution;
 		}
 
-		CountDataset(fluff::random::RandomEngine& rng, uint64_t max_len) :
+		CountDataset(fluff::random::RandomEngine& rng, u64 max_len) :
 			rng_(rng),
 			max_len_(max_len)
 		{ }
 
 		// input/output
 		// TODO use next64_high/med/low
-		std::pair<Memory<Config>, Memory<Config>> gen_datapoint()
+		std::pair<MemType, MemType> gen_datapoint()
 		{
 			fluff::random::RandomStream rng_stream(rng_);
 
-			uint64_t start = std::bit_width(max_len_);
-			uint64_t len = rng_stream.next64(max_len_ - start) + 1;
+			u64 start = std::bit_width(max_len_);
+			u64 len = rng_stream.next64(max_len_ - start) + 1;
 
-			Tape<Config> tape = Tape<Config>(start);
-			for (uint64_t i = start; i < (start + len); i++)
+			TapeType tape = TapeType(start);
+			for (u64 i = start; i < (start + len); i++)
 			{
 				tape.write(i, rng_stream.next64(2) + 1);
 			}
-			Head<Config> head = Head<Config>(tape);
 
-			Tape<Config>* tapes[num_tapes] = { &tape };
-			Head<Config>* heads[num_heads] = { &head };
+			HeadType head = HeadType(tape);
 
-			Memory<Config> input(tapes, heads);
+			TapeType* tapes[num_tapes] = { &tape };
+			HeadType* heads[num_heads] = { &head };
 
-			Memory<Config> output = input;
+			MemType input(tapes, heads);
+			MemType output = input;
+
 			Utm<Config> utm(solution, output);
 			utm.run();
 
-			return std::make_pair<Memory<Config>, Memory<Config>>(std::move(input), std::move(output));
+			return std::make_pair<MemType, MemType>(std::move(input), std::move(output));
 		}
 
-		Dataset<Config> gen_dataset(uint64_t num_entries)
+		Dataset<Config> gen_dataset(u64 num_entries)
 		{
 			// PERF VERY INEFFICIENT
 			// FIX
 			Dataset<Config> dataset;
 
-			for (uint64_t i = 0; i < num_entries; i++)
+			for (u64 i = 0; i < num_entries; i++)
 			{
 				dataset.add_entry(gen_datapoint());
 			}
