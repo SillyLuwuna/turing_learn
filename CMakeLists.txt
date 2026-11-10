@@ -50,7 +50,7 @@ target_compile_options(${BIN} PRIVATE
 	# -g
 )
 
-set(USE_MPFR ON CACHE BOOL "" FORCE)
+set(FLUFF_EXTENSIONS_MPFR ON CACHE BOOL "" FORCE)
 
 add_subdirectory(third_party/fluff)
 
